@@ -1,0 +1,802 @@
+<title>学年別 漢字よみドリル</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Klee+One:wght@400;600&family=Zen+Kaku+Gothic+New:wght@400;500;700&display=swap">
+<style>
+:root{
+  --paper:#F4F6F1; --card:#FFFFFF; --card-2:#FAFBF8;
+  --ink:#1D2422; --ink-2:#5B6763; --ink-3:#8A948F;
+  --rule:#DCE2DA; --rule-strong:#C3CCC1;
+  --accent:#1F6B55; --accent-ink:#155041; --accent-soft:#E4EFE9;
+  --vermilion:#C0432C; --vermilion-soft:#F8E7E2;
+  --shadow:0 1px 2px rgba(29,36,34,.06), 0 8px 24px -16px rgba(29,36,34,.3);
+  --sans:"Zen Kaku Gothic New","Hiragino Kaku Gothic ProN","Noto Sans JP",sans-serif;
+  --text:"Klee One","Hiragino Mincho ProN","Yu Mincho",serif;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --paper:#121614; --card:#1A201D; --card-2:#151A18;
+    --ink:#E8EBE6; --ink-2:#9DA8A2; --ink-3:#77827D;
+    --rule:#2B332F; --rule-strong:#3B453F;
+    --accent:#71C7A0; --accent-ink:#9BDCBC; --accent-soft:#1C2B25;
+    --vermilion:#EC8A71; --vermilion-soft:#33201B;
+    --shadow:0 1px 2px rgba(0,0,0,.4), 0 8px 24px -16px rgba(0,0,0,.8);
+  }
+}
+:root[data-theme="dark"]{
+  --paper:#121614; --card:#1A201D; --card-2:#151A18;
+  --ink:#E8EBE6; --ink-2:#9DA8A2; --ink-3:#77827D;
+  --rule:#2B332F; --rule-strong:#3B453F;
+  --accent:#71C7A0; --accent-ink:#9BDCBC; --accent-soft:#1C2B25;
+  --vermilion:#EC8A71; --vermilion-soft:#33201B;
+  --shadow:0 1px 2px rgba(0,0,0,.4), 0 8px 24px -16px rgba(0,0,0,.8);
+}
+*{box-sizing:border-box}
+body{background:var(--paper); color:var(--ink); font-family:var(--sans); font-size:15px;
+  -webkit-font-smoothing:antialiased;}
+.wrap{max-width:780px; margin:0 auto; padding:22px 18px 56px; display:flex; flex-direction:column; gap:18px;}
+
+/* ── 見出し ── */
+.masthead{display:flex; align-items:flex-end; justify-content:space-between; gap:16px; flex-wrap:wrap;}
+.masthead h1{font-family:var(--text); font-weight:600; font-size:1.45rem; margin:0; letter-spacing:.04em;}
+.masthead .sub{margin:4px 0 0; color:var(--ink-2); font-size:.78rem; letter-spacing:.02em;}
+.counts{font-size:.72rem; color:var(--ink-3); letter-spacing:.06em; font-variant-numeric:tabular-nums; text-align:right;}
+.counts b{color:var(--accent); font-weight:700;}
+
+/* ── 学年タブ ── */
+.grades{display:grid; grid-template-columns:repeat(6,1fr); gap:6px;}
+.grade{appearance:none; border:1px solid var(--rule-strong); background:var(--card); color:var(--ink-2);
+  border-radius:3px; padding:9px 0 7px; cursor:pointer; font-family:var(--text); font-size:1.05rem;
+  line-height:1.15; display:flex; flex-direction:column; align-items:center; gap:2px; transition:.12s;}
+.grade small{font-family:var(--sans); font-size:.62rem; letter-spacing:.08em; color:var(--ink-3);
+  font-variant-numeric:tabular-nums;}
+.grade:hover{border-color:var(--accent); color:var(--ink);}
+.grade[aria-pressed="true"]{background:var(--accent); border-color:var(--accent); color:#fff;}
+.grade[aria-pressed="true"] small{color:rgba(255,255,255,.8);}
+
+/* ── 設定バー ── */
+.settings{display:flex; flex-wrap:wrap; gap:14px 20px; padding:12px 14px; background:var(--card-2);
+  border:1px solid var(--rule); border-radius:4px;}
+.field{display:flex; align-items:center; gap:8px;}
+.field > span{font-size:.7rem; letter-spacing:.1em; color:var(--ink-3);}
+.seg{display:flex; border:1px solid var(--rule-strong); border-radius:3px; overflow:hidden;}
+.seg button{appearance:none; border:0; background:transparent; color:var(--ink-2); font-family:var(--sans);
+  font-size:.78rem; padding:5px 10px; cursor:pointer; border-right:1px solid var(--rule-strong);}
+.seg button:last-child{border-right:0;}
+.seg button[aria-pressed="true"]{background:var(--accent-soft); color:var(--accent-ink); font-weight:700;}
+.seg button:hover:not([aria-pressed="true"]){color:var(--ink);}
+
+/* ── 進捗 ── */
+.progress{display:flex; align-items:center; gap:10px;}
+.dots{display:flex; gap:5px; flex:1; flex-wrap:wrap;}
+.dot{width:9px; height:9px; border-radius:50%; border:1px solid var(--rule-strong); background:transparent;}
+.dot.now{border-color:var(--accent); box-shadow:0 0 0 3px var(--accent-soft);}
+.dot.ok{background:var(--accent); border-color:var(--accent);}
+.dot.ng{background:var(--vermilion); border-color:var(--vermilion);}
+.tally{font-size:.72rem; color:var(--ink-3); letter-spacing:.08em; font-variant-numeric:tabular-nums;}
+
+/* ── 問題カード ── */
+.card{background:var(--card); border:1px solid var(--rule); border-radius:5px; box-shadow:var(--shadow);
+  padding:26px 24px; display:flex; flex-direction:column; gap:20px;}
+.ask{font-size:.78rem; letter-spacing:.1em; color:var(--accent-ink); background:var(--accent-soft);
+  align-self:flex-start; padding:5px 10px 3px; border-radius:2px; line-height:2;}
+.ask ruby rt{font-family:var(--sans); font-size:.6em; color:var(--accent-ink); opacity:.72; font-weight:400;}
+
+/* ── スタート画面 / クイズ中のバー ── */
+.startrow{display:flex; align-items:center; gap:14px; flex-wrap:wrap;}
+.startrow .hint{font-size:.74rem; color:var(--ink-3);}
+button.big{font-size:1.06rem; padding:16px 38px; min-height:54px; letter-spacing:.08em;}
+.quizbar{display:flex; align-items:center; gap:10px 16px; flex-wrap:wrap; padding:9px 12px;
+  border:1px solid var(--rule); border-radius:4px; background:var(--card-2);}
+.quizbar .who{font-size:.78rem; color:var(--ink-2);}
+.quizbar .who b{color:var(--ink); font-weight:700;}
+.quizbar > button.ghost{margin-left:auto; padding:7px 12px; font-size:.76rem;}
+.seg.mini button{font-size:.72rem; padding:5px 9px;}
+.preview .cap{font-size:.68rem; letter-spacing:.14em; color:var(--ink-3);}
+.preview .note{font-size:.76rem; color:var(--ink-2); margin:0; line-height:1.8;}
+.preview .note em{font-style:normal; color:var(--accent-ink); font-weight:700;}
+
+/* ── タッチ端末 ── */
+@media (pointer:coarse){
+  .choice{min-height:58px; font-size:1.08rem;}
+  .seg button{padding:9px 13px; font-size:.82rem;}
+  .seg.mini button{padding:7px 10px; font-size:.76rem;}
+  .grade{padding:13px 0 11px;}
+  button.primary{min-height:50px;}
+  button.ghost{min-height:44px;}
+  .answer-row input{font-size:1.35rem; min-height:54px;}
+}
+/* ── ソフトキーボード表示中は余白をつめる ── */
+html.kb footer, html.kb .masthead .sub, html.kb .counts, html.kb .quizbar,
+html.kb .progress, html.kb .readings{display:none;}
+html.kb .wrap{padding:8px 14px 14px; gap:10px;}
+html.kb .masthead h1{font-size:1.05rem;}
+html.kb .card{padding:14px 16px; gap:12px;}
+html.kb .sentence{line-height:2.05; font-size:1.02rem;}
+html.kb .box{width:clamp(78px,18vw,96px);}
+html.kb .box span{font-size:clamp(44px,11vw,58px);}
+html.kb .okuri{font-size:26px;}
+html.kb .ask{line-height:1.8; font-size:.72rem;}
+
+/* 原稿用紙のマス */
+.box-row{display:flex; align-items:center; justify-content:center; gap:6px; padding:6px 0;}
+.box{position:relative; width:clamp(116px,30vw,150px); aspect-ratio:1; border:1.5px solid var(--accent);
+  background:var(--card-2); display:grid; place-items:center;}
+.box::before,.box::after{content:""; position:absolute; background:var(--rule-strong);}
+.box::before{left:50%; top:6%; bottom:6%; width:1px; transform:translateX(-.5px);}
+.box::after{top:50%; left:6%; right:6%; height:1px; transform:translateY(-.5px);}
+.box span{position:relative; font-family:var(--text); font-size:clamp(66px,17vw,86px); line-height:1;}
+.okuri{font-family:var(--text); font-size:clamp(30px,7vw,38px); color:var(--ink-3);}
+
+/* 短文 */
+.sentence{font-family:var(--text); font-size:clamp(1.06rem,3.6vw,1.25rem); line-height:2.25; margin:0;
+  text-align:left; word-break:normal; overflow-wrap:anywhere;}
+.sentence ruby rt{font-family:var(--sans); font-size:.42em; color:var(--ink-3); font-weight:400;
+  letter-spacing:0; transform:translateY(2px);}
+.target{position:relative; padding:0 .08em .1em; border-bottom:2.5px solid var(--vermilion);
+  color:var(--vermilion); font-weight:600;}
+.target.done{border-color:var(--accent); color:var(--accent-ink);}
+.target rt{color:var(--accent) !important; font-weight:700 !important;}
+
+/* 選択肢 */
+.choices{display:grid; grid-template-columns:repeat(2,1fr); gap:10px;}
+.choice{appearance:none; text-align:left; display:flex; align-items:center; gap:10px; cursor:pointer;
+  border:1px solid var(--rule-strong); background:var(--card-2); color:var(--ink); border-radius:4px;
+  padding:13px 14px; font-family:var(--sans); font-size:1.02rem; transition:.12s;}
+.choice kbd{font-family:var(--sans); font-size:.66rem; color:var(--ink-3); border:1px solid var(--rule-strong);
+  border-radius:2px; padding:1px 5px; background:var(--card);}
+.choice:hover:not(:disabled){border-color:var(--accent); background:var(--accent-soft);}
+.choice:disabled{cursor:default; opacity:.55;}
+.choice.correct{border-color:var(--accent); background:var(--accent-soft); color:var(--accent-ink);
+  font-weight:700; opacity:1;}
+.choice.wrong{border-color:var(--vermilion); background:var(--vermilion-soft); color:var(--vermilion);
+  opacity:1;}
+.answer-row{display:flex; gap:10px; flex-wrap:wrap;}
+.answer-row input{flex:1; min-width:180px; font-family:var(--text); font-size:1.25rem; padding:10px 12px;
+  border:1px solid var(--rule-strong); border-radius:4px; background:var(--card-2); color:var(--ink);}
+.answer-row input:focus-visible{outline:2px solid var(--accent); outline-offset:1px;}
+
+/* 判定 */
+.verdict{display:flex; align-items:baseline; gap:12px; flex-wrap:wrap; padding-top:2px;
+  border-top:1px dashed var(--rule); padding-top:16px;}
+.mark{font-family:var(--text); font-size:1.5rem; line-height:1;}
+.mark.ok{color:var(--accent);} .mark.ng{color:var(--vermilion);}
+.verdict .said{font-size:.82rem; color:var(--ink-2);}
+.verdict .said b{font-family:var(--text); font-size:1.05rem; color:var(--ink);}
+.readings{font-size:.78rem; color:var(--ink-2); display:flex; gap:12px; flex-wrap:wrap;}
+.readings span b{font-family:var(--text); font-size:1rem; color:var(--ink); font-weight:400;}
+.readings i{font-style:normal; color:var(--ink-3); font-size:.68rem; letter-spacing:.08em; margin-right:4px;}
+
+button.primary{appearance:none; border:0; background:var(--accent); color:#fff; font-family:var(--sans);
+  font-weight:700; font-size:.9rem; padding:11px 22px; border-radius:4px; cursor:pointer; letter-spacing:.04em;}
+button.primary:hover{background:var(--accent-ink);}
+button.ghost{appearance:none; background:transparent; border:1px solid var(--rule-strong); color:var(--ink-2);
+  font-family:var(--sans); font-size:.82rem; padding:10px 16px; border-radius:4px; cursor:pointer;}
+button.ghost:hover{border-color:var(--accent); color:var(--ink);}
+:focus-visible{outline:2px solid var(--accent); outline-offset:2px;}
+
+/* ── 結果 ── */
+.score{display:flex; align-items:baseline; gap:14px;}
+.score b{font-family:var(--text); font-size:3.2rem; line-height:1; color:var(--accent);}
+.score span{font-size:.8rem; color:var(--ink-2); letter-spacing:.06em;}
+.missed{display:flex; flex-direction:column; gap:0; border-top:1px solid var(--rule);}
+.missed li{list-style:none; display:flex; gap:14px; align-items:baseline; padding:11px 2px;
+  border-bottom:1px solid var(--rule);}
+.missed .w{font-family:var(--text); font-size:1.3rem; min-width:4.5em;}
+.missed .r{font-size:.9rem; color:var(--accent-ink); min-width:6em;}
+.missed .c{font-size:.76rem; color:var(--ink-3); flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
+.actions{display:flex; gap:10px; flex-wrap:wrap;}
+
+footer{font-size:.68rem; color:var(--ink-3); line-height:1.9; border-top:1px solid var(--rule); padding-top:14px;}
+footer a{color:var(--ink-2);}
+@media (max-width:520px){
+  .choices{grid-template-columns:1fr;}
+  .settings{gap:12px 16px;}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none !important; animation:none !important;}}
+</style>
+
+<div class="wrap">
+  <header class="masthead">
+    <div>
+      <h1>学年別 漢字よみドリル</h1>
+      <p class="sub">学年別漢字配当表（平成29年告示・全1026字）から出題します</p>
+    </div>
+    <div style="display:flex; flex-direction:column; align-items:flex-end; gap:6px;">
+      <div class="seg mini" id="theme" aria-label="画面の色">
+        <button data-v="auto" aria-pressed="true">自動</button>
+        <button data-v="light" aria-pressed="false">ライト</button>
+        <button data-v="dark" aria-pressed="false">ダーク</button>
+      </div>
+      <div class="counts" id="counts"></div>
+    </div>
+  </header>
+
+  <div id="setup">
+  <nav class="grades" id="grades" aria-label="学年をえらぶ"></nav>
+
+  <div class="settings" style="margin-top:14px">
+    <label class="field"><span>もんだい</span>
+      <div class="seg" id="mode">
+        <button data-v="sentence" aria-pressed="true">短文の読み</button>
+        <button data-v="single" aria-pressed="false">漢字ひとつ</button>
+      </div>
+    </label>
+    <label class="field"><span>こたえかた</span>
+      <div class="seg" id="input">
+        <button data-v="choice" aria-pressed="true">4つからえらぶ</button>
+        <button data-v="type" aria-pressed="false">入力する</button>
+      </div>
+    </label>
+    <label class="field"><span>はんい</span>
+      <div class="seg" id="scope">
+        <button data-v="exact" aria-pressed="true">この学年だけ</button>
+        <button data-v="upto" aria-pressed="false">この学年まで</button>
+      </div>
+    </label>
+    <label class="field"><span>ふりがな</span>
+      <div class="seg" id="furi">
+        <button data-v="over" aria-pressed="true">上の学年だけ</button>
+        <button data-v="all" aria-pressed="false">ぜんぶ</button>
+        <button data-v="none" aria-pressed="false">なし</button>
+      </div>
+    </label>
+  </div>
+
+  <div class="startrow" style="margin-top:16px">
+    <button class="primary big" id="start">スタート</button>
+    <span class="hint">10問ずつ出題します</span>
+  </div>
+  </div>
+
+  <div class="quizbar" id="quizbar" hidden></div>
+
+  <div class="progress" id="progress" hidden>
+    <div class="dots" id="dots"></div>
+    <div class="tally" id="tally"></div>
+  </div>
+
+  <main id="stage"></main>
+
+  <footer>
+    出題漢字：文部科学省「学年別漢字配当表」（小学校学習指導要領・平成29年告示／1026字）に準拠。
+    読みデータ：<a href="https://www.edrdg.org/wiki/index.php/KANJIDIC_Project" target="_blank" rel="noopener">KANJIDIC2</a>（電子辞書研究開発グループ, CC BY-SA 4.0）。短文はこのアプリのために書き下ろしたものです。
+  </footer>
+</div>
+
+<script>__KANJI_DATA__</script>
+<script>
+(function(){
+"use strict";
+const D = window.KANJI_DATA, K = D.kanji;
+const SEG = /([一-鿿々]+)《([ぁ-ゟー]+)》/g;
+const GRADE_LABEL = ["","一年","二年","三年","四年","五年","六年"];
+const SETTINGS_KEY = "kanji-drill-settings-v1";
+const QUIZ_LEN = 10;
+
+/* ---------- 下ごしらえ ---------- */
+function gradeOf(ch){ const e = K[ch]; return e ? e.g : 99; }
+function wordGrade(w){ let g = 0; for (const c of w) g = Math.max(g, gradeOf(c)); return g; }
+
+function parse(t){
+  const out = []; let last = 0, m;
+  SEG.lastIndex = 0;
+  while ((m = SEG.exec(t))){
+    if (m.index > last) out.push({kana:t.slice(last, m.index)});
+    out.push({k:m[1], r:m[2], g:wordGrade(m[1])});
+    last = SEG.lastIndex;
+  }
+  if (last < t.length) out.push({kana:t.slice(last)});
+  return out;
+}
+const SENT = D.sentences.map(s => {
+  const segs = parse(s.t);
+  return {segs, above:{}, words:segs.filter(x => x.k)};
+});
+// 学年ごとの「ルビが必要な語の割合」を先に出しておく（やさしい文から出すため）
+SENT.forEach(s => {
+  for (let g = 1; g <= 6; g++){
+    let over = 0;
+    s.words.forEach(w => { if (w.g > g) over++; });
+    s.above[g] = over / s.words.length;
+  }
+});
+
+// 本文に実際に出てくる一字語の読み（表外の訓を出題しないため）
+const CORPUS_KUN = {};
+SENT.forEach(s => s.words.forEach(w => {
+  if (w.k.length === 1){ (CORPUS_KUN[w.k] = CORPUS_KUN[w.k] || new Set()).add(w.r); }
+}));
+
+const BY_GRADE = {1:[],2:[],3:[],4:[],5:[],6:[]};
+Object.keys(K).forEach(c => BY_GRADE[K[c].g].push(c));
+
+/* ---------- 状態 ---------- */
+const state = {grade:1, mode:"sentence", input:"choice", scope:"exact", furi:"over", theme:"auto",
+               phase:"setup", queue:[], at:0, results:[], answered:null};
+const HOST_THEME = document.documentElement.getAttribute("data-theme");
+function applyTheme(){
+  const root = document.documentElement;
+  if (state.theme === "auto"){
+    if (HOST_THEME) root.setAttribute("data-theme", HOST_THEME); else root.removeAttribute("data-theme");
+  }else root.setAttribute("data-theme", state.theme);
+}
+try{
+  const saved = JSON.parse(localStorage.getItem(SETTINGS_KEY) || "null");
+  if (saved) ["grade","mode","input","scope","furi","theme"].forEach(k => { if (saved[k]) state[k] = saved[k]; });
+}catch(e){}
+function save(){
+  try{ localStorage.setItem(SETTINGS_KEY, JSON.stringify(
+    {grade:state.grade, mode:state.mode, input:state.input, scope:state.scope, furi:state.furi,
+     theme:state.theme})); }catch(e){}
+}
+
+/* ---------- 道具 ---------- */
+const shuffle = a => { for (let i = a.length-1; i > 0; i--){ const j = (Math.random()*(i+1))|0; [a[i],a[j]] = [a[j],a[i]]; } return a; };
+const pick = a => a[(Math.random()*a.length)|0];
+const KATA_TO_HIRA = s => s.replace(/[ァ-ヶ]/g, c => String.fromCharCode(c.charCodeAt(0)-0x60));
+const normalize = s => KATA_TO_HIRA(String(s||"")).trim().replace(/[\s　ー~]/g,"");
+
+function gradesInScope(){
+  return state.scope === "upto" ? [1,2,3,4,5,6].filter(g => g <= state.grade) : [state.grade];
+}
+function distractors(answer, pool, exclude, n){
+  const bad = new Set([answer, ...(exclude||[])]);
+  const same = shuffle(pool.filter(r => !bad.has(r) && r.length === answer.length));
+  const near = shuffle(pool.filter(r => !bad.has(r) && Math.abs(r.length - answer.length) === 1));
+  const rest = shuffle(pool.filter(r => !bad.has(r)));
+  const out = [];
+  for (const r of [...same, ...near, ...rest]){ if (out.indexOf(r) < 0) out.push(r); if (out.length === n) break; }
+  return out;
+}
+
+/* ---------- 出題づくり ---------- */
+function buildSentenceQuiz(n){
+  const gs = gradesInScope(), gset = new Set(gs), g = state.grade;
+  const cands = [];
+  SENT.forEach((s, si) => s.segs.forEach((w, wi) => {
+    if (w.k && gset.has(w.g)) cands.push({si, wi, ease:s.above[g], short:w.r.length < 2 ? 1 : 0});
+  }));
+  if (!cands.length) return [];
+  shuffle(cands);
+  // 読みが1モーラの語は当てずっぽうになりやすいので後回し、次にルビの少ない文を優先
+  cands.sort((a,b) => (a.short - b.short) || (a.ease - b.ease));
+  const head = cands.slice(0, Math.max(n*4, 40));
+  const chosen = [], usedWord = new Set(), usedSent = new Set();
+  for (const c of shuffle(head)){
+    const w = SENT[c.si].segs[c.wi];
+    if (usedWord.has(w.k) || usedSent.has(c.si)) continue;
+    usedWord.add(w.k); usedSent.add(c.si); chosen.push(c);
+    if (chosen.length === n) break;
+  }
+  for (const c of shuffle(cands)){                  // 足りなければ条件をゆるめる
+    if (chosen.length >= n) break;
+    if (chosen.some(x => x.si === c.si && x.wi === c.wi)) continue;
+    chosen.push(c);
+  }
+  const pool = [];
+  cands.forEach(c => pool.push(SENT[c.si].segs[c.wi].r));
+  return chosen.slice(0, n).map(c => {
+    const s = SENT[c.si], w = s.segs[c.wi];
+    return {kind:"sentence", si:c.si, wi:c.wi, word:w.k, answer:w.r,
+            accept:[w.r], choices:shuffle([w.r, ...distractors(w.r, pool, [], 3)])};
+  });
+}
+
+function kanjiQuestion(c){
+  const info = K[c], opts = [];
+  if (info.on.length) opts.push({type:"on", disp:c, okuri:"", answer:info.on[0],
+                                 accept:info.on.slice()});
+  const used = CORPUS_KUN[c];
+  if (used){
+    info.kun.forEach(k => {
+      const dot = k.indexOf(".");
+      const stem = dot < 0 ? k : k.slice(0, dot);
+      const okuri = dot < 0 ? "" : k.slice(dot+1);
+      if (!used.has(stem)) return;
+      opts.push({type:"kun", disp:c, okuri, answer:stem+okuri, accept:[stem+okuri, stem]});
+    });
+  }
+  if (!opts.length && info.kun.length){
+    const k = info.kun[0], dot = k.indexOf("."), stem = dot < 0 ? k : k.slice(0, dot);
+    const okuri = dot < 0 ? "" : k.slice(dot+1);
+    opts.push({type:"kun", disp:c, okuri, answer:stem+okuri, accept:[stem+okuri, stem]});
+  }
+  if (!opts.length) return null;
+  const onOpts = opts.filter(o => o.type === "on"), kunOpts = opts.filter(o => o.type === "kun");
+  const q = (onOpts.length && kunOpts.length) ? (Math.random() < .5 ? pick(onOpts) : pick(kunOpts))
+                                              : pick(opts);
+  q.char = c;
+  return q;
+}
+function buildSingleQuiz(n){
+  const chars = [];
+  gradesInScope().forEach(g => chars.push(...BY_GRADE[g]));
+  const qs = [];
+  for (const c of shuffle(chars)){
+    const q = kanjiQuestion(c);
+    if (q) qs.push(q);
+    if (qs.length === n) break;
+  }
+  const poolOn = [], poolKun = [];
+  chars.forEach(c => {
+    K[c].on.forEach(r => poolOn.push(r));
+    if (!CORPUS_KUN[c]) return;
+    K[c].kun.forEach(k => {
+      const dot = k.indexOf("."), stem = dot < 0 ? k : k.slice(0, dot);
+      if (CORPUS_KUN[c].has(stem)) poolKun.push(dot < 0 ? stem : stem + k.slice(dot+1));
+    });
+  });
+  return qs.map(q => {
+    const own = K[q.char].on.concat(K[q.char].kun.map(k => k.replace(".", "")),
+                                    K[q.char].kun.map(k => k.split(".")[0]));
+    let pool = poolOn;
+    if (q.type === "kun"){
+      const sameOkuri = poolKun.filter(r => q.okuri ? r.endsWith(q.okuri) : true);
+      pool = sameOkuri.length >= 8 ? sameOkuri : poolKun;
+    }
+    return {kind:"single", char:q.char, type:q.type, okuri:q.okuri, word:q.disp+q.okuri,
+            answer:q.answer, accept:q.accept,
+            choices:shuffle([q.answer, ...distractors(q.answer, pool, own, 3)])};
+  });
+}
+
+function newQuiz(){
+  state.phase = "quiz";
+  state.queue = state.mode === "sentence" ? buildSentenceQuiz(QUIZ_LEN) : buildSingleQuiz(QUIZ_LEN);
+  state.at = 0; state.results = []; state.answered = null;
+  render();
+}
+
+/* ---------- 描画 ---------- */
+const $ = id => document.getElementById(id);
+const el = (tag, cls, txt) => { const e = document.createElement(tag); if (cls) e.className = cls;
+  if (txt != null) e.textContent = txt; return e; };
+
+function rubyNode(word, reading){
+  const r = document.createElement("ruby");
+  r.appendChild(document.createTextNode(word));
+  const rt = document.createElement("rt"); rt.textContent = reading;
+  r.appendChild(rt);
+  return r;
+}
+function renderSentence(si, wi, revealed){
+  const p = el("p", "sentence");
+  SENT[si].segs.forEach((seg, i) => {
+    if (seg.kana){ p.appendChild(document.createTextNode(seg.kana)); return; }
+    if (i === wi){
+      const span = el("span", "target" + (revealed ? " done" : ""));
+      if (revealed) span.appendChild(rubyNode(seg.k, seg.r));
+      else span.textContent = seg.k;
+      p.appendChild(span);
+      return;
+    }
+    const needs = state.furi === "all" ? true : state.furi === "none" ? false : seg.g > state.grade;
+    p.appendChild(needs ? rubyNode(seg.k, seg.r) : document.createTextNode(seg.k));
+  });
+  return p;
+}
+
+function rubyText(parts){
+  const frag = document.createDocumentFragment();
+  parts.forEach(p => frag.appendChild(Array.isArray(p) ? rubyNode(p[0], p[1]) : document.createTextNode(p)));
+  return frag;
+}
+function askChip(parts){
+  const d = el("div", "ask"); d.appendChild(rubyText(parts)); return d;
+}
+function readingList(c){
+  const info = K[c], box = el("div", "readings");
+  if (info.on.length){
+    const s = el("span"); const i = el("i"); i.appendChild(rubyNode("音","おん")); s.appendChild(i);
+    const b = el("b", null, info.on.slice(0,3).join("・")); s.appendChild(b); box.appendChild(s);
+  }
+  if (info.kun.length){
+    const s = el("span"); const i = el("i"); i.appendChild(rubyNode("訓","くん")); s.appendChild(i);
+    const b = el("b", null, info.kun.slice(0,4).map(k => k.replace(".", "")).join("・"));
+    s.appendChild(b); box.appendChild(s);
+  }
+  return box;
+}
+
+function render(){
+  // 学年タブ
+  const nav = $("grades"); nav.textContent = "";
+  for (let g = 1; g <= 6; g++){
+    const b = el("button", "grade");
+    b.setAttribute("aria-pressed", String(g === state.grade));
+    b.appendChild(document.createTextNode(GRADE_LABEL[g]));
+    b.appendChild(el("small", null, BY_GRADE[g].length + "字"));
+    b.onclick = () => { state.grade = g; save(); render(); };
+    nav.appendChild(b);
+  }
+  // 設定
+  [["mode","mode"],["input","input"],["scope","scope"],["furi","furi"],["theme","theme"]].forEach(([id, key]) => {
+    Array.from($(id).children).forEach(b => {
+      b.setAttribute("aria-pressed", String(b.dataset.v === state[key]));
+      b.onclick = () => {
+        state[key] = b.dataset.v; save();
+        if (key === "theme") applyTheme();
+        render();
+      };
+    });
+  });
+  $("start").onclick = () => { state.phase = "quiz"; newQuiz(); };
+
+  // 画面の出しわけ
+  const inQuiz = state.phase === "quiz";
+  $("setup").hidden = inQuiz;
+  $("quizbar").hidden = !inQuiz;
+  $("progress").hidden = !inQuiz;
+  if (inQuiz) renderQuizBar();
+  // 集計表示
+  const gs = gradesInScope();
+  const chars = gs.reduce((n, g) => n + BY_GRADE[g].length, 0);
+  $("counts").innerHTML = "出題範囲 <b>" + chars + "</b> 字 ／ 短文 <b>" + SENT.length + "</b> 本";
+
+  // 進捗
+  const dots = $("dots"); dots.textContent = "";
+  for (let i = 0; i < state.queue.length; i++){
+    const d = el("div", "dot" + (state.results[i] === true ? " ok" : state.results[i] === false ? " ng"
+                : i === state.at ? " now" : ""));
+    dots.appendChild(d);
+  }
+  const ok = state.results.filter(Boolean).length;
+  $("tally").textContent = state.at >= state.queue.length && state.queue.length
+    ? "終了" : (state.at + 1) + " / " + state.queue.length + "　正解 " + ok;
+
+  const stage = $("stage"); stage.textContent = "";
+  if (!inQuiz){ stage.appendChild(previewCard()); return; }
+  if (!state.queue.length){ stage.appendChild(el("div", "card", "この条件で出せる問題がありません。")); return; }
+  if (state.at >= state.queue.length){ stage.appendChild(resultCard()); return; }
+  stage.appendChild(questionCard());
+}
+
+function renderQuizBar(){
+  const bar = $("quizbar"); bar.textContent = "";
+  const who = el("div", "who");
+  who.appendChild(el("b", null, GRADE_LABEL[state.grade] + (state.scope === "upto" ? "まで" : "")));
+  who.appendChild(document.createTextNode("　" + (state.mode === "sentence" ? "短文の読み" : "漢字ひとつ")
+    + "　" + (state.input === "choice" ? "4つからえらぶ" : "入力する")));
+  bar.appendChild(who);
+  if (state.mode === "sentence"){
+    const field = el("label", "field");
+    field.appendChild(el("span", null, "ふりがな"));
+    const seg = el("div", "seg mini");
+    [["over","上の学年だけ"],["all","ぜんぶ"],["none","なし"]].forEach(([v, label]) => {
+      const b = el("button", null, label);
+      b.setAttribute("aria-pressed", String(state.furi === v));
+      b.onclick = () => { state.furi = v; save(); render(); };
+      seg.appendChild(b);
+    });
+    field.appendChild(seg); bar.appendChild(field);
+  }
+  const back = el("button", "ghost", "設定にもどる");
+  back.onclick = () => { state.phase = "setup"; state.answered = null; render(); };
+  bar.appendChild(back);
+}
+
+function previewCard(){
+  const card = el("div", "card preview");
+  card.appendChild(el("div", "cap", "こんなふうに出ます"));
+  if (state.mode === "sentence"){
+    const gset = new Set(gradesInScope());
+    let best = null;
+    SENT.forEach((s, si) => s.segs.forEach((w, wi) => {
+      if (!w.k || !gset.has(w.g) || w.r.length < 2) return;
+      if (!best || s.above[state.grade] < best.score) best = {si, wi, score:s.above[state.grade]};
+    }));
+    if (best) card.appendChild(renderSentence(best.si, best.wi, true));
+    const note = el("p", "note");
+    note.appendChild(document.createTextNode("線を引いた語の読みを答えます。"));
+    if (state.furi === "over" && state.grade < 6){
+      note.appendChild(document.createElement("br"));
+      note.appendChild(document.createTextNode("ほかの漢字はそのまま漢字で出し、"));
+      const em = el("em", null, GRADE_LABEL[state.grade] + "より上の学年の漢字");
+      note.appendChild(em);
+      note.appendChild(document.createTextNode("にだけふりがなをつけます。"));
+    }else if (state.furi === "all"){
+      note.appendChild(document.createElement("br"));
+      note.appendChild(document.createTextNode("出題語いがいのすべての漢字にふりがなをつけます。"));
+    }else if (state.furi === "none"){
+      note.appendChild(document.createElement("br"));
+      note.appendChild(document.createTextNode("ふりがなはつけません。"));
+    }
+    card.appendChild(note);
+  }else{
+    const chars = [];
+    gradesInScope().forEach(g => chars.push(...BY_GRADE[g]));
+    const q = kanjiQuestion(chars[0]);
+    const row = el("div", "box-row"), box = el("div", "box");
+    box.appendChild(el("span", null, q ? q.char : "漢"));
+    row.appendChild(box);
+    if (q && q.okuri) row.appendChild(el("div", "okuri", q.okuri));
+    card.appendChild(row);
+    const note = el("p", "note");
+    note.appendChild(document.createTextNode("この学年の漢字を1字ずつ出します。"));
+    note.appendChild(document.createElement("br"));
+    note.appendChild(rubyText([["音読","おんよ"],"み・",["訓読","くんよ"],"みのどちらを答えるかは、問題ごとに出ます。"]));
+    card.appendChild(note);
+  }
+  return card;
+}
+
+function questionCard(){
+  const q = state.queue[state.at], done = state.answered !== null;
+  const card = el("div", "card");
+
+  if (q.kind === "sentence"){
+    card.appendChild(askChip([["赤","あか"],"い",["線","せん"],"の",["読","よ"],"み",["方","かた"],"は？"]));
+    card.appendChild(renderSentence(q.si, q.wi, done));
+  }else{
+    card.appendChild(askChip(q.type === "on"
+      ? [["音読","おんよ"],"みを",["答","こた"],"えよう"] : [["訓読","くんよ"],"みを",["答","こた"],"えよう"]));
+    const row = el("div", "box-row"), box = el("div", "box");
+    box.appendChild(el("span", null, q.char));
+    row.appendChild(box);
+    if (q.okuri) row.appendChild(el("div", "okuri", q.okuri));
+    card.appendChild(row);
+  }
+
+  if (!done){
+    if (state.input === "choice"){
+      const wrap = el("div", "choices");
+      q.choices.forEach((c, i) => {
+        const b = el("button", "choice");
+        b.appendChild(el("kbd", null, String(i+1)));
+        b.appendChild(document.createTextNode(c));
+        b.onclick = () => answer(c);
+        wrap.appendChild(b);
+      });
+      card.appendChild(wrap);
+    }else{
+      const row = el("div", "answer-row");
+      const inp = document.createElement("input");
+      inp.type = "text"; inp.placeholder = "ひらがなで入力"; inp.autocomplete = "off"; inp.id = "typed";
+      inp.setAttribute("autocapitalize", "off"); inp.setAttribute("autocorrect", "off");
+      inp.setAttribute("spellcheck", "false"); inp.setAttribute("enterkeyhint", "done");
+      inp.onfocus = () => setTimeout(() => {
+        const c = document.querySelector(".card");
+        if (c && c.scrollIntoView) c.scrollIntoView({block:"start", behavior:"smooth"});
+      }, 250);
+      inp.onkeydown = e => { if (e.key === "Enter"){ e.preventDefault(); answer(inp.value); } };
+      const btn = el("button", "primary", "こたえる");
+      btn.onclick = () => answer(inp.value);
+      row.appendChild(inp); row.appendChild(btn);
+      card.appendChild(row);
+      setTimeout(() => inp.focus(), 0);
+    }
+  }else{
+    if (state.input === "choice"){
+      const wrap = el("div", "choices");
+      q.choices.forEach((c, i) => {
+        const b = el("button", "choice");
+        b.disabled = true;
+        if (c === q.answer) b.classList.add("correct");
+        else if (c === state.answered) b.classList.add("wrong");
+        b.appendChild(el("kbd", null, String(i+1)));
+        b.appendChild(document.createTextNode(c));
+        wrap.appendChild(b);
+      });
+      card.appendChild(wrap);
+    }
+    const v = el("div", "verdict");
+    const good = state.results[state.at];
+    v.appendChild(el("div", "mark " + (good ? "ok" : "ng"), good ? "○ せいかい" : "× ざんねん"));
+    if (!good){
+      const said = el("div", "said");
+      said.appendChild(document.createTextNode("正しい読みは "));
+      said.appendChild(el("b", null, q.answer));
+      if (state.input === "type" && state.answered)
+        said.appendChild(document.createTextNode("（入力：" + state.answered + "）"));
+      v.appendChild(said);
+    }
+    card.appendChild(v);
+    if (q.kind === "single") card.appendChild(readingList(q.char));
+    else {
+      const list = el("div", "readings");
+      for (const ch of q.word){
+        const s = el("span");
+        s.appendChild(el("i", null, GRADE_LABEL[gradeOf(ch)] || "中学以上"));
+        s.appendChild(el("b", null, ch));
+        list.appendChild(s);
+      }
+      card.appendChild(list);
+    }
+    const next = el("button", "primary", state.at === state.queue.length-1 ? "結果をみる" : "つぎへ");
+    next.id = "next";
+    next.onclick = advance;
+    const row = el("div", "actions"); row.appendChild(next);
+    card.appendChild(row);
+    setTimeout(() => next.focus(), 0);
+  }
+  return card;
+}
+
+function answer(value){
+  if (state.answered !== null) return;
+  const q = state.queue[state.at];
+  const v = normalize(value);
+  if (!v) return;
+  const ok = q.accept.some(a => normalize(a) === v);
+  state.answered = String(value).trim();
+  state.results[state.at] = ok;
+  render();
+}
+function advance(){
+  state.at++; state.answered = null;
+  render();
+}
+
+function resultCard(){
+  const card = el("div", "card");
+  const ok = state.results.filter(Boolean).length;
+  const score = el("div", "score");
+  const b = el("b", null, ok + "/" + state.queue.length);
+  score.appendChild(b);
+  score.appendChild(el("span", null, GRADE_LABEL[state.grade] + "の漢字　"
+    + (state.mode === "sentence" ? "短文の読み" : "漢字ひとつ")
+    + (ok === state.queue.length ? "　全問正解！" : "")));
+  card.appendChild(score);
+
+  const missed = state.queue.map((q, i) => [q, i]).filter(([q, i]) => state.results[i] === false);
+  if (missed.length){
+    const ul = el("ul", "missed");
+    missed.forEach(([q]) => {
+      const li = document.createElement("li");
+      li.appendChild(el("div", "w", q.word));
+      li.appendChild(el("div", "r", q.answer));
+      li.appendChild(el("div", "c", q.kind === "sentence"
+        ? SENT[q.si].segs.map(s => s.k || s.kana).join("")
+        : (K[q.char].on.length ? "音 " + K[q.char].on.slice(0,2).join("・") + "　" : "")
+          + (K[q.char].kun.length ? "訓 " + K[q.char].kun.slice(0,3).map(k => k.replace(".","")).join("・") : "")));
+      ul.appendChild(li);
+    });
+    card.appendChild(ul);
+  }
+  const actions = el("div", "actions");
+  const again = el("button", "primary", "もう一度（新しい10問）");
+  again.onclick = newQuiz;
+  actions.appendChild(again);
+  if (missed.length){
+    const rev = el("button", "ghost", "まちがえた " + missed.length + " 問だけ");
+    rev.onclick = () => {
+      state.queue = missed.map(([q]) => q);
+      state.at = 0; state.results = []; state.answered = null;
+      render();
+    };
+    actions.appendChild(rev);
+  }
+  const back = el("button", "ghost", "設定にもどる");
+  back.onclick = () => { state.phase = "setup"; render(); };
+  actions.appendChild(back);
+  card.appendChild(actions);
+  setTimeout(() => again.focus(), 0);
+  return card;
+}
+
+document.addEventListener("keydown", e => {
+  if (e.target && e.target.tagName === "INPUT") return;
+  if (state.answered === null && state.input === "choice" && /^[1-4]$/.test(e.key)){
+    const q = state.queue[state.at];
+    if (q && q.choices[+e.key-1] != null){ e.preventDefault(); answer(q.choices[+e.key-1]); }
+  }else if (state.answered !== null && (e.key === "Enter" || e.key === " ")){
+    const n = document.getElementById("next");
+    if (n){ e.preventDefault(); advance(); }
+  }
+});
+
+const vv = window.visualViewport;
+if (vv){
+  const onVV = () => {
+    const shrunk = (window.innerHeight - vv.height) > 120;
+    document.documentElement.classList.toggle("kb", shrunk);
+  };
+  vv.addEventListener("resize", onVV);
+  vv.addEventListener("scroll", onVV);
+}
+
+applyTheme();
+render();
+})();
+</script>
