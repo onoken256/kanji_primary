@@ -91,12 +91,15 @@ def build_app():
     # dist/app.html … Artifact 公開用（<html>/<body> はホスト側が付ける）
     with open(os.path.join(HERE, 'dist', 'app.html'), 'w') as f:
         f.write(page)
-    # dist/preview.html … ブラウザで直接ひらいて確認する用
-    with open(os.path.join(HERE, 'dist', 'preview.html'), 'w') as f:
+    # index.html … 単体で完結するHTML（GitHub Pages・ローカルで直接ひらく用）
+    with open(os.path.join(HERE, 'index.html'), 'w') as f:
         f.write('<!doctype html>\n<html lang="ja">\n<head>\n<meta charset="utf-8">\n'
                 '<meta name="viewport" content="width=device-width,initial-scale=1">\n'
-                '<style>body{margin:0;font:14px system-ui}</style>\n</head>\n<body>\n'
+                '<meta name="description" content="小学校の学年別漢字配当表（1026字）から、'
+                '漢字の読みを出題するドリル。選んだ学年より上の漢字には自動でふりがなが付きます。">\n'
+                '<meta name="theme-color" content="#1F6B55">\n'
+                '<style>html,body{margin:0}</style>\n</head>\n<body>\n'
                 + page + '\n</body>\n</html>\n')
-    print('wrote dist/app.html, dist/preview.html')
+    print('wrote dist/app.html, index.html')
 
 main()

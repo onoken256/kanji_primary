@@ -1,5 +1,3 @@
 .DS_Store
 # KANJIDIC2 本体は配布元から取得する（README 参照）
 kanjidic2.xml.gz
-# ブラウザ確認用の生成物（dist/app.html だけコミットする）
-dist/preview.html

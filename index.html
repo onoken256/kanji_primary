@@ -1,0 +1,816 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="description" content="小学校の学年別漢字配当表（1026字）から、漢字の読みを出題するドリル。選んだ学年より上の漢字には自動でふりがなが付きます。">
+<meta name="theme-color" content="#1F6B55">
+<style>html,body{margin:0}</style>
+</head>
+<body>
+<title>学年別 漢字よみドリル</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Klee+One:wght@400;600&family=Zen+Kaku+Gothic+New:wght@400;500;700&display=swap">
+<style>
+:root{
+  --paper:#F4F6F1; --card:#FFFFFF; --card-2:#FAFBF8;
+  --ink:#1D2422; --ink-2:#5B6763; --ink-3:#8A948F;
+  --rule:#DCE2DA; --rule-strong:#C3CCC1;
+  --accent:#1F6B55; --accent-ink:#155041; --accent-soft:#E4EFE9;
+  --vermilion:#C0432C; --vermilion-soft:#F8E7E2;
+  --shadow:0 1px 2px rgba(29,36,34,.06), 0 8px 24px -16px rgba(29,36,34,.3);
+  --sans:"Zen Kaku Gothic New","Hiragino Kaku Gothic ProN","Noto Sans JP",sans-serif;
+  --text:"Klee One","Hiragino Mincho ProN","Yu Mincho",serif;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --paper:#121614; --card:#1A201D; --card-2:#151A18;
+    --ink:#E8EBE6; --ink-2:#9DA8A2; --ink-3:#77827D;
+    --rule:#2B332F; --rule-strong:#3B453F;
+    --accent:#71C7A0; --accent-ink:#9BDCBC; --accent-soft:#1C2B25;
+    --vermilion:#EC8A71; --vermilion-soft:#33201B;
+    --shadow:0 1px 2px rgba(0,0,0,.4), 0 8px 24px -16px rgba(0,0,0,.8);
+  }
+}
+:root[data-theme="dark"]{
+  --paper:#121614; --card:#1A201D; --card-2:#151A18;
+  --ink:#E8EBE6; --ink-2:#9DA8A2; --ink-3:#77827D;
+  --rule:#2B332F; --rule-strong:#3B453F;
+  --accent:#71C7A0; --accent-ink:#9BDCBC; --accent-soft:#1C2B25;
+  --vermilion:#EC8A71; --vermilion-soft:#33201B;
+  --shadow:0 1px 2px rgba(0,0,0,.4), 0 8px 24px -16px rgba(0,0,0,.8);
+}
+*{box-sizing:border-box}
+body{background:var(--paper); color:var(--ink); font-family:var(--sans); font-size:15px;
+  -webkit-font-smoothing:antialiased;}
+.wrap{max-width:780px; margin:0 auto; padding:22px 18px 56px; display:flex; flex-direction:column; gap:18px;}
+
+/* ── 見出し ── */
+.masthead{display:flex; align-items:flex-end; justify-content:space-between; gap:16px; flex-wrap:wrap;}
+.masthead h1{font-family:var(--text); font-weight:600; font-size:1.45rem; margin:0; letter-spacing:.04em;}
+.masthead .sub{margin:4px 0 0; color:var(--ink-2); font-size:.78rem; letter-spacing:.02em;}
+.counts{font-size:.72rem; color:var(--ink-3); letter-spacing:.06em; font-variant-numeric:tabular-nums; text-align:right;}
+.counts b{color:var(--accent); font-weight:700;}
+
+/* ── 学年タブ ── */
+.grades{display:grid; grid-template-columns:repeat(6,1fr); gap:6px;}
+.grade{appearance:none; border:1px solid var(--rule-strong); background:var(--card); color:var(--ink-2);
+  border-radius:3px; padding:9px 0 7px; cursor:pointer; font-family:var(--text); font-size:1.05rem;
+  line-height:1.15; display:flex; flex-direction:column; align-items:center; gap:2px; transition:.12s;}
+.grade small{font-family:var(--sans); font-size:.62rem; letter-spacing:.08em; color:var(--ink-3);
+  font-variant-numeric:tabular-nums;}
+.grade:hover{border-color:var(--accent); color:var(--ink);}
+.grade[aria-pressed="true"]{background:var(--accent); border-color:var(--accent); color:#fff;}
+.grade[aria-pressed="true"] small{color:rgba(255,255,255,.8);}
+
+/* ── 設定バー ── */
+.settings{display:flex; flex-wrap:wrap; gap:14px 20px; padding:12px 14px; background:var(--card-2);
+  border:1px solid var(--rule); border-radius:4px;}
+.field{display:flex; align-items:center; gap:8px;}
+.field > span{font-size:.7rem; letter-spacing:.1em; color:var(--ink-3);}
+.seg{display:flex; border:1px solid var(--rule-strong); border-radius:3px; overflow:hidden;}
+.seg button{appearance:none; border:0; background:transparent; color:var(--ink-2); font-family:var(--sans);
+  font-size:.78rem; padding:5px 10px; cursor:pointer; border-right:1px solid var(--rule-strong);}
+.seg button:last-child{border-right:0;}
+.seg button[aria-pressed="true"]{background:var(--accent-soft); color:var(--accent-ink); font-weight:700;}
+.seg button:hover:not([aria-pressed="true"]){color:var(--ink);}
+
+/* ── 進捗 ── */
+.progress{display:flex; align-items:center; gap:10px;}
+.dots{display:flex; gap:5px; flex:1; flex-wrap:wrap;}
+.dot{width:9px; height:9px; border-radius:50%; border:1px solid var(--rule-strong); background:transparent;}
+.dot.now{border-color:var(--accent); box-shadow:0 0 0 3px var(--accent-soft);}
+.dot.ok{background:var(--accent); border-color:var(--accent);}
+.dot.ng{background:var(--vermilion); border-color:var(--vermilion);}
+.tally{font-size:.72rem; color:var(--ink-3); letter-spacing:.08em; font-variant-numeric:tabular-nums;}
+
+/* ── 問題カード ── */
+.card{background:var(--card); border:1px solid var(--rule); border-radius:5px; box-shadow:var(--shadow);
+  padding:26px 24px; display:flex; flex-direction:column; gap:20px;}
+.ask{font-size:.78rem; letter-spacing:.1em; color:var(--accent-ink); background:var(--accent-soft);
+  align-self:flex-start; padding:5px 10px 3px; border-radius:2px; line-height:2;}
+.ask ruby rt{font-family:var(--sans); font-size:.6em; color:var(--accent-ink); opacity:.72; font-weight:400;}
+
+/* ── スタート画面 / クイズ中のバー ── */
+.startrow{display:flex; align-items:center; gap:14px; flex-wrap:wrap;}
+.startrow .hint{font-size:.74rem; color:var(--ink-3);}
+button.big{font-size:1.06rem; padding:16px 38px; min-height:54px; letter-spacing:.08em;}
+.quizbar{display:flex; align-items:center; gap:10px 16px; flex-wrap:wrap; padding:9px 12px;
+  border:1px solid var(--rule); border-radius:4px; background:var(--card-2);}
+.quizbar .who{font-size:.78rem; color:var(--ink-2);}
+.quizbar .who b{color:var(--ink); font-weight:700;}
+.quizbar > button.ghost{margin-left:auto; padding:7px 12px; font-size:.76rem;}
+.seg.mini button{font-size:.72rem; padding:5px 9px;}
+.preview .cap{font-size:.68rem; letter-spacing:.14em; color:var(--ink-3);}
+.preview .note{font-size:.76rem; color:var(--ink-2); margin:0; line-height:1.8;}
+.preview .note em{font-style:normal; color:var(--accent-ink); font-weight:700;}
+
+/* ── タッチ端末 ── */
+@media (pointer:coarse){
+  .choice{min-height:58px; font-size:1.08rem;}
+  .seg button{padding:9px 13px; font-size:.82rem;}
+  .seg.mini button{padding:7px 10px; font-size:.76rem;}
+  .grade{padding:13px 0 11px;}
+  button.primary{min-height:50px;}
+  button.ghost{min-height:44px;}
+  .answer-row input{font-size:1.35rem; min-height:54px;}
+}
+/* ── ソフトキーボード表示中は余白をつめる ── */
+html.kb footer, html.kb .masthead .sub, html.kb .counts, html.kb .quizbar,
+html.kb .progress, html.kb .readings{display:none;}
+html.kb .wrap{padding:8px 14px 14px; gap:10px;}
+html.kb .masthead h1{font-size:1.05rem;}
+html.kb .card{padding:14px 16px; gap:12px;}
+html.kb .sentence{line-height:2.05; font-size:1.02rem;}
+html.kb .box{width:clamp(78px,18vw,96px);}
+html.kb .box span{font-size:clamp(44px,11vw,58px);}
+html.kb .okuri{font-size:26px;}
+html.kb .ask{line-height:1.8; font-size:.72rem;}
+
+/* 原稿用紙のマス */
+.box-row{display:flex; align-items:center; justify-content:center; gap:6px; padding:6px 0;}
+.box{position:relative; width:clamp(116px,30vw,150px); aspect-ratio:1; border:1.5px solid var(--accent);
+  background:var(--card-2); display:grid; place-items:center;}
+.box::before,.box::after{content:""; position:absolute; background:var(--rule-strong);}
+.box::before{left:50%; top:6%; bottom:6%; width:1px; transform:translateX(-.5px);}
+.box::after{top:50%; left:6%; right:6%; height:1px; transform:translateY(-.5px);}
+.box span{position:relative; font-family:var(--text); font-size:clamp(66px,17vw,86px); line-height:1;}
+.okuri{font-family:var(--text); font-size:clamp(30px,7vw,38px); color:var(--ink-3);}
+
+/* 短文 */
+.sentence{font-family:var(--text); font-size:clamp(1.06rem,3.6vw,1.25rem); line-height:2.25; margin:0;
+  text-align:left; word-break:normal; overflow-wrap:anywhere;}
+.sentence ruby rt{font-family:var(--sans); font-size:.42em; color:var(--ink-3); font-weight:400;
+  letter-spacing:0; transform:translateY(2px);}
+.target{position:relative; padding:0 .08em .1em; border-bottom:2.5px solid var(--vermilion);
+  color:var(--vermilion); font-weight:600;}
+.target.done{border-color:var(--accent); color:var(--accent-ink);}
+.target rt{color:var(--accent) !important; font-weight:700 !important;}
+
+/* 選択肢 */
+.choices{display:grid; grid-template-columns:repeat(2,1fr); gap:10px;}
+.choice{appearance:none; text-align:left; display:flex; align-items:center; gap:10px; cursor:pointer;
+  border:1px solid var(--rule-strong); background:var(--card-2); color:var(--ink); border-radius:4px;
+  padding:13px 14px; font-family:var(--sans); font-size:1.02rem; transition:.12s;}
+.choice kbd{font-family:var(--sans); font-size:.66rem; color:var(--ink-3); border:1px solid var(--rule-strong);
+  border-radius:2px; padding:1px 5px; background:var(--card);}
+.choice:hover:not(:disabled){border-color:var(--accent); background:var(--accent-soft);}
+.choice:disabled{cursor:default; opacity:.55;}
+.choice.correct{border-color:var(--accent); background:var(--accent-soft); color:var(--accent-ink);
+  font-weight:700; opacity:1;}
+.choice.wrong{border-color:var(--vermilion); background:var(--vermilion-soft); color:var(--vermilion);
+  opacity:1;}
+.answer-row{display:flex; gap:10px; flex-wrap:wrap;}
+.answer-row input{flex:1; min-width:180px; font-family:var(--text); font-size:1.25rem; padding:10px 12px;
+  border:1px solid var(--rule-strong); border-radius:4px; background:var(--card-2); color:var(--ink);}
+.answer-row input:focus-visible{outline:2px solid var(--accent); outline-offset:1px;}
+
+/* 判定 */
+.verdict{display:flex; align-items:baseline; gap:12px; flex-wrap:wrap; padding-top:2px;
+  border-top:1px dashed var(--rule); padding-top:16px;}
+.mark{font-family:var(--text); font-size:1.5rem; line-height:1;}
+.mark.ok{color:var(--accent);} .mark.ng{color:var(--vermilion);}
+.verdict .said{font-size:.82rem; color:var(--ink-2);}
+.verdict .said b{font-family:var(--text); font-size:1.05rem; color:var(--ink);}
+.readings{font-size:.78rem; color:var(--ink-2); display:flex; gap:12px; flex-wrap:wrap;}
+.readings span b{font-family:var(--text); font-size:1rem; color:var(--ink); font-weight:400;}
+.readings i{font-style:normal; color:var(--ink-3); font-size:.68rem; letter-spacing:.08em; margin-right:4px;}
+
+button.primary{appearance:none; border:0; background:var(--accent); color:#fff; font-family:var(--sans);
+  font-weight:700; font-size:.9rem; padding:11px 22px; border-radius:4px; cursor:pointer; letter-spacing:.04em;}
+button.primary:hover{background:var(--accent-ink);}
+button.ghost{appearance:none; background:transparent; border:1px solid var(--rule-strong); color:var(--ink-2);
+  font-family:var(--sans); font-size:.82rem; padding:10px 16px; border-radius:4px; cursor:pointer;}
+button.ghost:hover{border-color:var(--accent); color:var(--ink);}
+:focus-visible{outline:2px solid var(--accent); outline-offset:2px;}
+
+/* ── 結果 ── */
+.score{display:flex; align-items:baseline; gap:14px;}
+.score b{font-family:var(--text); font-size:3.2rem; line-height:1; color:var(--accent);}
+.score span{font-size:.8rem; color:var(--ink-2); letter-spacing:.06em;}
+.missed{display:flex; flex-direction:column; gap:0; border-top:1px solid var(--rule);}
+.missed li{list-style:none; display:flex; gap:14px; align-items:baseline; padding:11px 2px;
+  border-bottom:1px solid var(--rule);}
+.missed .w{font-family:var(--text); font-size:1.3rem; min-width:4.5em;}
+.missed .r{font-size:.9rem; color:var(--accent-ink); min-width:6em;}
+.missed .c{font-size:.76rem; color:var(--ink-3); flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
+.actions{display:flex; gap:10px; flex-wrap:wrap;}
+
+footer{font-size:.68rem; color:var(--ink-3); line-height:1.9; border-top:1px solid var(--rule); padding-top:14px;}
+footer a{color:var(--ink-2);}
+@media (max-width:520px){
+  .choices{grid-template-columns:1fr;}
+  .settings{gap:12px 16px;}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none !important; animation:none !important;}}
+</style>
+
+<div class="wrap">
+  <header class="masthead">
+    <div>
+      <h1>学年別 漢字よみドリル</h1>
+      <p class="sub">学年別漢字配当表（平成29年告示・全1026字）から出題します</p>
+    </div>
+    <div style="display:flex; flex-direction:column; align-items:flex-end; gap:6px;">
+      <div class="seg mini" id="theme" aria-label="画面の色">
+        <button data-v="auto" aria-pressed="true">自動</button>
+        <button data-v="light" aria-pressed="false">ライト</button>
+        <button data-v="dark" aria-pressed="false">ダーク</button>
+      </div>
+      <div class="counts" id="counts"></div>
+    </div>
+  </header>
+
+  <div id="setup">
+  <nav class="grades" id="grades" aria-label="学年をえらぶ"></nav>
+
+  <div class="settings" style="margin-top:14px">
+    <label class="field"><span>もんだい</span>
+      <div class="seg" id="mode">
+        <button data-v="sentence" aria-pressed="true">短文の読み</button>
+        <button data-v="single" aria-pressed="false">漢字ひとつ</button>
+      </div>
+    </label>
+    <label class="field"><span>こたえかた</span>
+      <div class="seg" id="input">
+        <button data-v="choice" aria-pressed="true">4つからえらぶ</button>
+        <button data-v="type" aria-pressed="false">入力する</button>
+      </div>
+    </label>
+    <label class="field"><span>はんい</span>
+      <div class="seg" id="scope">
+        <button data-v="exact" aria-pressed="true">この学年だけ</button>
+        <button data-v="upto" aria-pressed="false">この学年まで</button>
+      </div>
+    </label>
+    <label class="field"><span>ふりがな</span>
+      <div class="seg" id="furi">
+        <button data-v="over" aria-pressed="true">上の学年だけ</button>
+        <button data-v="all" aria-pressed="false">ぜんぶ</button>
+        <button data-v="none" aria-pressed="false">なし</button>
+      </div>
+    </label>
+  </div>
+
+  <div class="startrow" style="margin-top:16px">
+    <button class="primary big" id="start">スタート</button>
+    <span class="hint">10問ずつ出題します</span>
+  </div>
+  </div>
+
+  <div class="quizbar" id="quizbar" hidden></div>
+
+  <div class="progress" id="progress" hidden>
+    <div class="dots" id="dots"></div>
+    <div class="tally" id="tally"></div>
+  </div>
+
+  <main id="stage"></main>
+
+  <footer>
+    出題漢字：文部科学省「学年別漢字配当表」（小学校学習指導要領・平成29年告示／1026字）に準拠。
+    読みデータ：<a href="https://www.edrdg.org/wiki/index.php/KANJIDIC_Project" target="_blank" rel="noopener">KANJIDIC2</a>（電子辞書研究開発グループ, CC BY-SA 4.0）。短文はこのアプリのために書き下ろしたものです。
+  </footer>
+</div>
+
+<script>window.KANJI_DATA={"kanji":{"愛":{"g":4,"on":["あい"],"kun":["いと.しい","かな.しい","め.でる","お.しむ","まな"]},"悪":{"g":3,"on":["あく","お"],"kun":["わる.い","あ.し","にく.い","ああ","いずくに","いずくんぞ","にく.む"]},"圧":{"g":5,"on":["あつ","えん","おう"],"kun":["お.す","へ.す","おさ.える","お.さえる"]},"安":{"g":3,"on":["あん"],"kun":["やす.い","やす.まる","やす","やす.らか"]},"暗":{"g":3,"on":["あん"],"kun":["くら.い","くら.む","くれ.る"]},"案":{"g":4,"on":["あん"],"kun":["つくえ"]},"以":{"g":4,"on":["い"],"kun":["もっ.て"]},"位":{"g":4,"on":["い"],"kun":["くらい","ぐらい"]},"囲":{"g":5,"on":["い"],"kun":["かこ.む","かこ.う","かこ.い"]},"委":{"g":3,"on":["い"],"kun":["ゆだ.ねる"]},"意":{"g":3,"on":["い"],"kun":[]},"易":{"g":5,"on":["えき","い"],"kun":["やさ.しい","やす.い"]},"異":{"g":6,"on":["い"],"kun":["こと","こと.なる","け"]},"移":{"g":5,"on":["い"],"kun":["うつ.る","うつ.す"]},"胃":{"g":6,"on":["い"],"kun":[]},"衣":{"g":4,"on":["い","え"],"kun":["ころも","きぬ"]},"遺":{"g":6,"on":["い","ゆい"],"kun":["のこ.す"]},"医":{"g":3,"on":["い"],"kun":["い.やす","い.する","くすし"]},"井":{"g":4,"on":["せい","しょう"],"kun":["い"]},"域":{"g":6,"on":["いき"],"kun":[]},"育":{"g":3,"on":["いく"],"kun":["そだ.つ","そだ.ち","そだ.てる","はぐく.む"]},"一":{"g":1,"on":["いち","いつ"],"kun":["ひと.つ"]},"茨":{"g":4,"on":["し","じ"],"kun":["いばら","かや","くさぶき"]},"印":{"g":4,"on":["いん"],"kun":["しるし","しる.す"]},"員":{"g":3,"on":["いん"],"kun":[]},"因":{"g":5,"on":["いん"],"kun":["よ.る","ちな.む"]},"引":{"g":2,"on":["いん"],"kun":["ひ.く","ひ.ける"]},"飲":{"g":3,"on":["いん","おん"],"kun":["の.む"]},"院":{"g":3,"on":["いん"],"kun":[]},"右":{"g":1,"on":["う","ゆう"],"kun":["みぎ"]},"宇":{"g":6,"on":["う"],"kun":[]},"羽":{"g":2,"on":["う"],"kun":["は","わ","はね"]},"雨":{"g":1,"on":["う"],"kun":["あめ"]},"運":{"g":3,"on":["うん"],"kun":["はこ.ぶ"]},"雲":{"g":2,"on":["うん"],"kun":["くも"]},"営":{"g":5,"on":["えい"],"kun":["いとな.む","いとな.み"]},"映":{"g":6,"on":["えい"],"kun":["うつ.る","うつ.す","は.える"]},"栄":{"g":4,"on":["えい","よう"],"kun":["さか.える","は.え","は.える","え"]},"永":{"g":5,"on":["えい"],"kun":["なが.い"]},"泳":{"g":3,"on":["えい"],"kun":["およ.ぐ"]},"英":{"g":4,"on":["えい"],"kun":["はなぶさ"]},"衛":{"g":5,"on":["えい","え"],"kun":[]},"液":{"g":5,"on":["えき"],"kun":[]},"益":{"g":5,"on":["えき","やく"],"kun":["ま.す"]},"駅":{"g":3,"on":["えき"],"kun":[]},"円":{"g":1,"on":["えん"],"kun":["まる.い","まる","まど","まど.か","まろ.やか"]},"園":{"g":2,"on":["えん"],"kun":["その"]},"延":{"g":6,"on":["えん"],"kun":["の.びる","の.べる","の.べ","の.ばす"]},"沿":{"g":6,"on":["えん"],"kun":["そ.う"]},"演":{"g":5,"on":["えん"],"kun":[]},"遠":{"g":2,"on":["えん","おん"],"kun":["とお.い"]},"塩":{"g":4,"on":["えん"],"kun":["しお"]},"央":{"g":3,"on":["おう"],"kun":[]},"往":{"g":5,"on":["おう"],"kun":["い.く","いにしえ","さき.に","ゆ.く"]},"応":{"g":5,"on":["おう","よう"],"kun":["あた.る","まさに","こた.える"]},"横":{"g":3,"on":["おう"],"kun":["よこ"]},"王":{"g":1,"on":["おう"],"kun":[]},"黄":{"g":2,"on":["こう","おう"],"kun":["き"]},"岡":{"g":4,"on":["こう"],"kun":["おか"]},"沖":{"g":4,"on":["ちゅう"],"kun":["おき","おきつ","ちゅう.する","わく"]},"億":{"g":4,"on":["おく"],"kun":[]},"屋":{"g":3,"on":["おく"],"kun":["や"]},"恩":{"g":6,"on":["おん"],"kun":[]},"温":{"g":3,"on":["おん"],"kun":["あたた.か","あたた.かい","あたた.まる","あたた.める","ぬく"]},"音":{"g":1,"on":["おん","いん"],"kun":["おと","ね"]},"下":{"g":1,"on":["か","げ"],"kun":["した","しも","もと","さ.げる","さ.がる","くだ.る","くだ.り","くだ.す","くだ.さる","お.ろす","お.りる"]},"化":{"g":3,"on":["か","け"],"kun":["ば.ける","ば.かす","ふ.ける","け.する"]},"仮":{"g":5,"on":["か","け"],"kun":["かり"]},"何":{"g":2,"on":["か"],"kun":["なに","なん"]},"価":{"g":5,"on":["か","け"],"kun":["あたい"]},"加":{"g":4,"on":["か"],"kun":["くわ.える","くわ.わる"]},"可":{"g":5,"on":["か","こく"],"kun":[]},"夏":{"g":2,"on":["か","が","げ"],"kun":["なつ"]},"家":{"g":2,"on":["か","け"],"kun":["いえ","や","うち"]},"科":{"g":2,"on":["か"],"kun":[]},"果":{"g":4,"on":["か"],"kun":["は.たす","はた.す","は.てる","は.て"]},"歌":{"g":2,"on":["か"],"kun":["うた","うた.う"]},"河":{"g":5,"on":["か"],"kun":["かわ"]},"火":{"g":1,"on":["か"],"kun":["ひ"]},"花":{"g":1,"on":["か","け"],"kun":["はな"]},"荷":{"g":3,"on":["か"],"kun":["に"]},"課":{"g":4,"on":["か"],"kun":[]},"貨":{"g":4,"on":["か"],"kun":["たから"]},"過":{"g":5,"on":["か"],"kun":["す.ぎる","す.ごす","あやま.ち","あやま.つ","よぎ.る","よ.ぎる"]},"我":{"g":6,"on":["が"],"kun":["われ","わ"]},"画":{"g":2,"on":["が","かく","え","かい"],"kun":["えが.く","かく.する","かぎ.る","はかりごと","はか.る"]},"芽":{"g":4,"on":["が"],"kun":["め"]},"賀":{"g":4,"on":["が"],"kun":[]},"会":{"g":2,"on":["かい","え"],"kun":["あ.う","あ.わせる","あつ.まる"]},"解":{"g":5,"on":["かい","げ"],"kun":["と.く","と.かす","と.ける","ほど.く","ほぐ.す","わか.る","さと.る"]},"回":{"g":2,"on":["かい","え"],"kun":["まわ.る","まわ.す","もとお.る","か.える"]},"快":{"g":5,"on":["かい"],"kun":["こころよ.い"]},"改":{"g":4,"on":["かい"],"kun":["あらた.める","あらた.まる"]},"械":{"g":4,"on":["かい"],"kun":["かせ"]},"海":{"g":2,"on":["かい"],"kun":["うみ"]},"灰":{"g":6,"on":["かい"],"kun":["はい"]},"界":{"g":3,"on":["かい"],"kun":[]},"絵":{"g":2,"on":["かい","え"],"kun":[]},"開":{"g":3,"on":["かい"],"kun":["ひら.く","ひら.き","ひら.ける","あ.く","あ.ける"]},"階":{"g":3,"on":["かい"],"kun":["きざはし"]},"貝":{"g":1,"on":["ばい"],"kun":["かい"]},"外":{"g":2,"on":["がい","げ"],"kun":["そと","ほか","はず.す","はず.れる"]},"害":{"g":4,"on":["がい"],"kun":[]},"街":{"g":4,"on":["がい","かい"],"kun":["まち"]},"各":{"g":4,"on":["かく"],"kun":["おのおの"]},"拡":{"g":6,"on":["かく","こう"],"kun":["ひろ.がる","ひろ.げる","ひろ.める"]},"格":{"g":5,"on":["かく","こう","きゃく","ごう"],"kun":[]},"確":{"g":5,"on":["かく","こう"],"kun":["たし.か","たし.かめる"]},"覚":{"g":4,"on":["かく"],"kun":["おぼ.える","さ.ます","さ.める","さと.る"]},"角":{"g":2,"on":["かく"],"kun":["かど","つの"]},"閣":{"g":6,"on":["かく"],"kun":[]},"革":{"g":6,"on":["かく"],"kun":["かわ"]},"学":{"g":1,"on":["がく"],"kun":["まな.ぶ"]},"楽":{"g":2,"on":["がく","らく","ごう"],"kun":["たの.しい","たの.しむ","この.む"]},"額":{"g":5,"on":["がく"],"kun":["ひたい"]},"潟":{"g":4,"on":["せき"],"kun":["かた"]},"割":{"g":6,"on":["かつ"],"kun":["わ.る","わり","わ.り","わ.れる","さ.く"]},"活":{"g":2,"on":["かつ"],"kun":["い.きる","い.かす","い.ける"]},"株":{"g":6,"on":["しゅ"],"kun":["かぶ"]},"寒":{"g":3,"on":["かん"],"kun":["さむ.い"]},"刊":{"g":5,"on":["かん"],"kun":[]},"巻":{"g":6,"on":["かん","けん"],"kun":["ま.く","まき","ま.き"]},"完":{"g":4,"on":["かん"],"kun":[]},"官":{"g":4,"on":["かん"],"kun":[]},"干":{"g":6,"on":["かん"],"kun":["ほ.す","ひ.る"]},"幹":{"g":5,"on":["かん"],"kun":["みき"]},"感":{"g":3,"on":["かん"],"kun":[]},"慣":{"g":5,"on":["かん"],"kun":["な.れる","な.らす"]},"漢":{"g":3,"on":["かん"],"kun":[]},"看":{"g":6,"on":["かん"],"kun":["み.る"]},"管":{"g":4,"on":["かん"],"kun":["くだ"]},"簡":{"g":6,"on":["かん","けん"],"kun":["えら.ぶ","ふだ"]},"観":{"g":4,"on":["かん"],"kun":["み.る","しめ.す"]},"間":{"g":2,"on":["かん","けん"],"kun":["あいだ","ま","あい"]},"関":{"g":4,"on":["かん"],"kun":["せき","かか.わる","からくり","かんぬき"]},"館":{"g":3,"on":["かん"],"kun":["やかた","たて"]},"丸":{"g":2,"on":["がん"],"kun":["まる","まる.める","まる.い"]},"岸":{"g":3,"on":["がん"],"kun":["きし"]},"眼":{"g":5,"on":["がん","げん"],"kun":["まなこ","め"]},"岩":{"g":2,"on":["がん"],"kun":["いわ"]},"顔":{"g":2,"on":["がん"],"kun":["かお"]},"願":{"g":4,"on":["がん"],"kun":["ねが.う"]},"危":{"g":6,"on":["き"],"kun":["あぶ.ない","あや.うい","あや.ぶむ"]},"喜":{"g":5,"on":["き"],"kun":["よろこ.ぶ","よろこ.ばす"]},"器":{"g":4,"on":["き"],"kun":["うつわ"]},"基":{"g":5,"on":["き"],"kun":["もと","もとい"]},"寄":{"g":5,"on":["き"],"kun":["よ.る","よ.せる"]},"岐":{"g":4,"on":["き","ぎ"],"kun":[]},"希":{"g":4,"on":["き","け"],"kun":["まれ","こいねが.う"]},"揮":{"g":6,"on":["き"],"kun":["ふる.う"]},"机":{"g":6,"on":["き"],"kun":["つくえ"]},"旗":{"g":4,"on":["き"],"kun":["はた"]},"期":{"g":3,"on":["き","ご"],"kun":[]},"機":{"g":4,"on":["き"],"kun":["はた"]},"帰":{"g":2,"on":["き"],"kun":["かえ.る","かえ.す","おく.る","とつ.ぐ"]},"気":{"g":1,"on":["き","け"],"kun":["いき","き"]},"汽":{"g":2,"on":["き"],"kun":[]},"季":{"g":4,"on":["き"],"kun":[]},"紀":{"g":5,"on":["き"],"kun":[]},"規":{"g":5,"on":["き"],"kun":[]},"記":{"g":2,"on":["き"],"kun":["しる.す"]},"貴":{"g":6,"on":["き"],"kun":["たっと.い","とうと.い","たっと.ぶ","とうと.ぶ"]},"起":{"g":3,"on":["き"],"kun":["お.きる","お.こる","お.こす","おこ.す","た.つ"]},"技":{"g":5,"on":["ぎ"],"kun":["わざ"]},"疑":{"g":6,"on":["ぎ"],"kun":["うたが.う"]},"義":{"g":5,"on":["ぎ"],"kun":[]},"議":{"g":4,"on":["ぎ"],"kun":[]},"客":{"g":3,"on":["きゃく","かく"],"kun":[]},"逆":{"g":5,"on":["ぎゃく","げき"],"kun":["さか","さか.さ","さか.らう"]},"久":{"g":5,"on":["きゅう","く"],"kun":["ひさ.しい"]},"休":{"g":1,"on":["きゅう"],"kun":["やす.む","やす.まる","やす.める"]},"吸":{"g":6,"on":["きゅう"],"kun":["す.う"]},"宮":{"g":3,"on":["きゅう","ぐう","く","くう"],"kun":["みや"]},"弓":{"g":2,"on":["きゅう"],"kun":["ゆみ"]},"急":{"g":3,"on":["きゅう"],"kun":["いそ.ぐ","いそ.ぎ","せ.く"]},"救":{"g":5,"on":["きゅう"],"kun":["すく.う"]},"求":{"g":4,"on":["きゅう","ぐ"],"kun":["もと.める"]},"泣":{"g":4,"on":["きゅう"],"kun":["な.く"]},"球":{"g":3,"on":["きゅう"],"kun":["たま"]},"究":{"g":3,"on":["きゅう","く"],"kun":["きわ.める"]},"級":{"g":3,"on":["きゅう"],"kun":[]},"給":{"g":4,"on":["きゅう"],"kun":["たま.う","たも.う"]},"旧":{"g":5,"on":["きゅう"],"kun":["ふる.い","もと"]},"牛":{"g":2,"on":["ぎゅう"],"kun":["うし"]},"去":{"g":3,"on":["きょ","こ"],"kun":["さ.る"]},"居":{"g":5,"on":["きょ","こ"],"kun":["い.る","お.る"]},"挙":{"g":4,"on":["きょ"],"kun":["あ.げる","あ.がる","こぞ.る"]},"許":{"g":5,"on":["きょ"],"kun":["ゆる.す","もと"]},"漁":{"g":4,"on":["ぎょ","りょう"],"kun":["あさ.る"]},"魚":{"g":2,"on":["ぎょ"],"kun":["うお","さかな"]},"京":{"g":2,"on":["きょう","けい","きん"],"kun":["みやこ"]},"供":{"g":6,"on":["きょう","く","くう","ぐ"],"kun":["そな.える","とも"]},"競":{"g":4,"on":["きょう","けい"],"kun":["きそ.う","せ.る","くら.べる"]},"共":{"g":4,"on":["きょう"],"kun":["とも","とも.に"]},"協":{"g":4,"on":["きょう"],"kun":[]},"境":{"g":5,"on":["きょう","けい"],"kun":["さかい"]},"強":{"g":2,"on":["きょう","ごう"],"kun":["つよ.い","つよ.まる","つよ.める","し.いる","こわ.い"]},"教":{"g":2,"on":["きょう"],"kun":["おし.える","おそ.わる"]},"橋":{"g":3,"on":["きょう"],"kun":["はし"]},"胸":{"g":6,"on":["きょう"],"kun":["むね"]},"興":{"g":5,"on":["こう","きょう"],"kun":["おこ.る","おこ.す"]},"郷":{"g":6,"on":["きょう","ごう"],"kun":["さと"]},"鏡":{"g":4,"on":["きょう","けい"],"kun":["かがみ"]},"業":{"g":3,"on":["ぎょう","ごう"],"kun":["わざ"]},"局":{"g":3,"on":["きょく"],"kun":["つぼね"]},"曲":{"g":3,"on":["きょく"],"kun":["ま.がる","ま.げる","くま"]},"極":{"g":4,"on":["きょく","ごく"],"kun":["きわ.める","きわ.まる","きわ.まり","きわ.み","き.める","き.まる"]},"玉":{"g":1,"on":["ぎょく"],"kun":["たま"]},"勤":{"g":6,"on":["きん","ごん"],"kun":["つと.める","つと.まる","いそ.しむ"]},"均":{"g":5,"on":["きん"],"kun":["なら.す"]},"禁":{"g":5,"on":["きん"],"kun":[]},"筋":{"g":6,"on":["きん"],"kun":["すじ"]},"近":{"g":2,"on":["きん","こん"],"kun":["ちか.い"]},"金":{"g":1,"on":["きん","こん","ごん"],"kun":["かね"]},"銀":{"g":3,"on":["ぎん"],"kun":["しろがね"]},"九":{"g":1,"on":["きゅう","く"],"kun":["ここの","ここの.つ"]},"句":{"g":5,"on":["く"],"kun":[]},"区":{"g":3,"on":["く","おう","こう"],"kun":[]},"苦":{"g":3,"on":["く"],"kun":["くる.しい","くる.しむ","くる.しめる","にが.い","にが.る"]},"具":{"g":3,"on":["ぐ"],"kun":["そな.える","つぶさ.に"]},"空":{"g":1,"on":["くう"],"kun":["そら","あ.く","あ.き","あ.ける","から","す.く","す.かす","むな.しい"]},"熊":{"g":4,"on":["ゆう"],"kun":["くま"]},"君":{"g":3,"on":["くん"],"kun":["きみ"]},"訓":{"g":4,"on":["くん","きん"],"kun":["おし.える","よ.む","くん.ずる"]},"群":{"g":4,"on":["ぐん"],"kun":["む.れる","む.れ","むら","むら.がる"]},"軍":{"g":4,"on":["ぐん"],"kun":["いくさ"]},"郡":{"g":4,"on":["ぐん"],"kun":["こおり"]},"係":{"g":3,"on":["けい"],"kun":["かか.る","かかり","かか.わる"]},"兄":{"g":2,"on":["けい","きょう"],"kun":["あに"]},"型":{"g":5,"on":["けい"],"kun":["かた"]},"形":{"g":2,"on":["けい","ぎょう"],"kun":["かた","かたち","なり"]},"径":{"g":4,"on":["けい"],"kun":["みち","こみち","さしわたし","ただちに"]},"敬":{"g":6,"on":["けい","きょう"],"kun":["うやま.う"]},"景":{"g":4,"on":["けい"],"kun":[]},"系":{"g":6,"on":["けい"],"kun":[]},"経":{"g":5,"on":["けい","きょう","きん"],"kun":["へ.る","た.つ","たていと","はか.る","のり"]},"計":{"g":2,"on":["けい"],"kun":["はか.る","はか.らう"]},"警":{"g":6,"on":["けい"],"kun":["いまし.める"]},"軽":{"g":3,"on":["けい","きょう","きん"],"kun":["かる.い","かろ.やか","かろ.んじる"]},"芸":{"g":4,"on":["げい","うん"],"kun":["う.える","のり","わざ"]},"劇":{"g":6,"on":["げき"],"kun":[]},"激":{"g":6,"on":["げき"],"kun":["はげ.しい"]},"欠":{"g":4,"on":["けつ","けん"],"kun":["か.ける","か.く"]},"決":{"g":3,"on":["けつ"],"kun":["き.める","き.まる","さ.く"]},"潔":{"g":5,"on":["けつ"],"kun":["いさぎよ.い"]},"穴":{"g":6,"on":["けつ"],"kun":["あな"]},"結":{"g":4,"on":["けつ","けち"],"kun":["むす.ぶ","ゆ.う","ゆ.わえる"]},"血":{"g":3,"on":["けつ"],"kun":["ち"]},"月":{"g":1,"on":["げつ","がつ"],"kun":["つき"]},"件":{"g":5,"on":["けん"],"kun":["くだん"]},"健":{"g":4,"on":["けん"],"kun":["すこ.やか"]},"券":{"g":6,"on":["けん"],"kun":[]},"建":{"g":4,"on":["けん","こん"],"kun":["た.てる","た.て","た.つ"]},"憲":{"g":6,"on":["けん"],"kun":[]},"検":{"g":5,"on":["けん"],"kun":["しら.べる"]},"権":{"g":6,"on":["けん","ごん"],"kun":["おもり","かり","はか.る"]},"犬":{"g":1,"on":["けん"],"kun":["いぬ"]},"研":{"g":3,"on":["けん"],"kun":["と.ぐ"]},"絹":{"g":6,"on":["けん"],"kun":["きぬ"]},"県":{"g":3,"on":["けん"],"kun":["か.ける"]},"見":{"g":1,"on":["けん"],"kun":["み.る","み.える","み.せる"]},"険":{"g":5,"on":["けん"],"kun":["けわ.しい"]},"験":{"g":4,"on":["けん","げん"],"kun":["あかし","しるし","ため.す","ためし"]},"元":{"g":2,"on":["げん","がん"],"kun":["もと"]},"原":{"g":2,"on":["げん"],"kun":["はら"]},"厳":{"g":6,"on":["げん","ごん"],"kun":["おごそ.か","きび.しい","いか.めしい","いつくし"]},"減":{"g":5,"on":["げん"],"kun":["へ.る","へ.らす"]},"源":{"g":6,"on":["げん"],"kun":["みなもと"]},"現":{"g":5,"on":["げん"],"kun":["あらわ.れる","あらわ.す","うつつ","うつ.つ"]},"言":{"g":2,"on":["げん","ごん"],"kun":["い.う","こと"]},"限":{"g":5,"on":["げん"],"kun":["かぎ.る","かぎ.り"]},"個":{"g":5,"on":["こ","か"],"kun":[]},"古":{"g":2,"on":["こ"],"kun":["ふる.い"]},"呼":{"g":6,"on":["こ"],"kun":["よ.ぶ"]},"固":{"g":4,"on":["こ"],"kun":["かた.める","かた.まる","かた.まり","かた.い"]},"己":{"g":6,"on":["こ","き"],"kun":["おのれ","つちのと","な"]},"庫":{"g":3,"on":["こ","く"],"kun":["くら"]},"戸":{"g":2,"on":["こ"],"kun":["と"]},"故":{"g":5,"on":["こ"],"kun":["ゆえ","ふる.い","もと"]},"湖":{"g":3,"on":["こ"],"kun":["みずうみ"]},"五":{"g":1,"on":["ご"],"kun":["いつ","いつ.つ"]},"午":{"g":2,"on":["ご"],"kun":["うま"]},"後":{"g":2,"on":["ご","こう"],"kun":["のち","うし.ろ","うしろ","あと","おく.れる"]},"語":{"g":2,"on":["ご"],"kun":["かた.る","かた.らう"]},"誤":{"g":6,"on":["ご"],"kun":["あやま.る"]},"護":{"g":5,"on":["ご"],"kun":["まも.る"]},"交":{"g":2,"on":["こう"],"kun":["まじ.わる","まじ.える","ま.じる","まじ.る","ま.ざる","ま.ぜる","か.わす","かわ.す","こもごも"]},"候":{"g":4,"on":["こう"],"kun":["そうろう"]},"光":{"g":2,"on":["こう"],"kun":["ひか.る","ひかり"]},"公":{"g":2,"on":["こう","く"],"kun":["おおやけ"]},"功":{"g":4,"on":["こう","く"],"kun":["いさお"]},"効":{"g":5,"on":["こう"],"kun":["き.く","ききめ","なら.う"]},"厚":{"g":5,"on":["こう"],"kun":["あつ.い","あか"]},"口":{"g":1,"on":["こう","く"],"kun":["くち"]},"向":{"g":3,"on":["こう"],"kun":["む.く","む.い","む.ける","む.かう","む.かい","む.こう","むこ","むか.い"]},"后":{"g":6,"on":["こう","ご"],"kun":["きさき"]},"好":{"g":4,"on":["こう"],"kun":["この.む","す.く","よ.い","い.い"]},"孝":{"g":6,"on":["こう","きょう"],"kun":[]},"工":{"g":2,"on":["こう","く","ぐ"],"kun":[]},"幸":{"g":3,"on":["こう"],"kun":["さいわ.い","さち","しあわ.せ"]},"広":{"g":2,"on":["こう"],"kun":["ひろ.い","ひろ.まる","ひろ.める","ひろ.がる","ひろ.げる"]},"康":{"g":4,"on":["こう"],"kun":[]},"校":{"g":1,"on":["こう","きょう"],"kun":[]},"構":{"g":5,"on":["こう"],"kun":["かま.える","かま.う"]},"港":{"g":3,"on":["こう"],"kun":["みなと"]},"皇":{"g":6,"on":["こう","おう"],"kun":[]},"紅":{"g":6,"on":["こう","く"],"kun":["べに","くれない","あか.い"]},"耕":{"g":5,"on":["こう"],"kun":["たがや.す"]},"考":{"g":2,"on":["こう"],"kun":["かんが.える","かんが.え"]},"航":{"g":5,"on":["こう"],"kun":[]},"行":{"g":2,"on":["こう","ぎょう","あん"],"kun":["い.く","ゆ.く","おこな.う","おこ.なう"]},"講":{"g":5,"on":["こう"],"kun":[]},"鉱":{"g":5,"on":["こう"],"kun":["あらがね"]},"鋼":{"g":6,"on":["こう"],"kun":["はがね"]},"降":{"g":6,"on":["こう","ご"],"kun":["お.りる","お.ろす","ふ.る","ふ.り","くだ.る","くだ.す"]},"香":{"g":4,"on":["こう","きょう"],"kun":["か","かお.り","かお.る"]},"高":{"g":2,"on":["こう"],"kun":["たか.い","たか","たか.まる","たか.める"]},"号":{"g":3,"on":["ごう"],"kun":["さけ.ぶ","よびな"]},"合":{"g":2,"on":["ごう","がっ","かっ"],"kun":["あ.う","あ.い","あ.わす","あ.わせる"]},"刻":{"g":6,"on":["こく"],"kun":["きざ.む","きざ.み"]},"告":{"g":5,"on":["こく"],"kun":["つ.げる"]},"国":{"g":2,"on":["こく"],"kun":["くに"]},"穀":{"g":6,"on":["こく"],"kun":[]},"黒":{"g":2,"on":["こく"],"kun":["くろ","くろ.ずむ","くろ.い"]},"骨":{"g":6,"on":["こつ"],"kun":["ほね"]},"今":{"g":2,"on":["こん","きん"],"kun":["いま"]},"困":{"g":6,"on":["こん"],"kun":["こま.る"]},"根":{"g":3,"on":["こん"],"kun":["ね"]},"混":{"g":5,"on":["こん"],"kun":["ま.じる","ま.ざる","ま.ぜる","こ.む"]},"佐":{"g":4,"on":["さ"],"kun":[]},"左":{"g":1,"on":["さ","しゃ"],"kun":["ひだり"]},"差":{"g":4,"on":["さ"],"kun":["さ.す","さ.し"]},"査":{"g":5,"on":["さ"],"kun":[]},"砂":{"g":6,"on":["さ","しゃ"],"kun":["すな"]},"座":{"g":6,"on":["ざ"],"kun":["すわ.る"]},"再":{"g":5,"on":["さい","さ"],"kun":["ふたた.び"]},"最":{"g":4,"on":["さい","しゅ"],"kun":["もっと.も","つま"]},"妻":{"g":5,"on":["さい"],"kun":["つま"]},"才":{"g":2,"on":["さい"],"kun":[]},"採":{"g":5,"on":["さい"],"kun":["と.る"]},"済":{"g":6,"on":["さい","せい"],"kun":["す.む","す.まない","す.ます","すく.う","な.す","わたし","わた.る"]},"災":{"g":5,"on":["さい"],"kun":["わざわ.い"]},"祭":{"g":3,"on":["さい"],"kun":["まつ.る","まつ.り","まつり"]},"細":{"g":2,"on":["さい"],"kun":["ほそ.い","ほそ.る","こま.か","こま.かい"]},"菜":{"g":4,"on":["さい"],"kun":["な"]},"裁":{"g":6,"on":["さい"],"kun":["た.つ","さば.く"]},"際":{"g":5,"on":["さい"],"kun":["きわ"]},"在":{"g":5,"on":["ざい"],"kun":["あ.る"]},"材":{"g":4,"on":["ざい"],"kun":[]},"罪":{"g":5,"on":["ざい"],"kun":["つみ"]},"財":{"g":5,"on":["ざい","さい","ぞく"],"kun":["たから"]},"坂":{"g":3,"on":["はん"],"kun":["さか"]},"阪":{"g":4,"on":["はん"],"kun":["さか"]},"崎":{"g":4,"on":["き"],"kun":["さき","さい","みさき"]},"埼":{"g":4,"on":["き"],"kun":["さき","さい","みさき"]},"作":{"g":2,"on":["さく","さ"],"kun":["つく.る","つく.り"]},"昨":{"g":4,"on":["さく"],"kun":[]},"策":{"g":6,"on":["さく"],"kun":[]},"桜":{"g":5,"on":["おう","よう"],"kun":["さくら"]},"冊":{"g":6,"on":["さつ","さく"],"kun":["ふみ"]},"刷":{"g":4,"on":["さつ"],"kun":["す.る","は.く"]},"察":{"g":4,"on":["さつ"],"kun":[]},"札":{"g":4,"on":["さつ"],"kun":["ふだ"]},"殺":{"g":5,"on":["さつ","さい","せつ"],"kun":["ころ.す","そ.ぐ","あや.める"]},"雑":{"g":5,"on":["ざつ","ぞう"],"kun":["まじ.える","まじ.る"]},"皿":{"g":3,"on":["べい"],"kun":["さら"]},"三":{"g":1,"on":["さん","ぞう"],"kun":["み","み.つ","みっ.つ"]},"参":{"g":4,"on":["さん","しん"],"kun":["まい.る","まじわる","みつ"]},"山":{"g":1,"on":["さん","せん"],"kun":["やま"]},"散":{"g":4,"on":["さん"],"kun":["ち.る","ち.らす","ち.らかす","ち.らかる","ち.らばる","ばら","ばら.ける"]},"産":{"g":4,"on":["さん"],"kun":["う.む","う.まれる","む.す"]},"算":{"g":2,"on":["さん"],"kun":["そろ"]},"蚕":{"g":6,"on":["さん","てん"],"kun":["かいこ","こ"]},"賛":{"g":5,"on":["さん"],"kun":["たす.ける","たた.える"]},"酸":{"g":5,"on":["さん"],"kun":["す.い"]},"残":{"g":4,"on":["ざん","さん"],"kun":["のこ.る","のこ.す","そこな.う","のこ.り"]},"仕":{"g":3,"on":["し","じ"],"kun":["つか.える"]},"使":{"g":3,"on":["し"],"kun":["つか.う","つか.い"]},"司":{"g":4,"on":["し"],"kun":["つかさど.る"]},"史":{"g":5,"on":["し"],"kun":[]},"四":{"g":1,"on":["し"],"kun":["よ","よ.つ","よっ.つ","よん"]},"士":{"g":5,"on":["し"],"kun":["さむらい"]},"始":{"g":3,"on":["し"],"kun":["はじ.める","はじ.まる"]},"姉":{"g":2,"on":["し"],"kun":["あね","はは"]},"姿":{"g":6,"on":["し"],"kun":["すがた"]},"子":{"g":1,"on":["し","す","つ"],"kun":["こ","ね"]},"市":{"g":2,"on":["し"],"kun":["いち"]},"師":{"g":5,"on":["し"],"kun":["いくさ"]},"志":{"g":5,"on":["し"],"kun":["シリング","こころざ.す","こころざし"]},"思":{"g":2,"on":["し"],"kun":["おも.う","おもえら.く","おぼ.す"]},"指":{"g":3,"on":["し"],"kun":["ゆび","さ.す"]},"支":{"g":5,"on":["し"],"kun":["ささ.える","つか.える","か.う"]},"枝":{"g":5,"on":["し"],"kun":["えだ"]},"止":{"g":2,"on":["し"],"kun":["と.まる","と.める","とど.める","とど.め","とど.まる","や.める","や.む","よ.す"]},"死":{"g":3,"on":["し"],"kun":["し.ぬ"]},"氏":{"g":4,"on":["し"],"kun":["うじ"]},"私":{"g":6,"on":["し"],"kun":["わたくし","わたし"]},"糸":{"g":1,"on":["し"],"kun":["いと"]},"紙":{"g":2,"on":["し"],"kun":["かみ"]},"至":{"g":6,"on":["し"],"kun":["いた.る"]},"視":{"g":6,"on":["し"],"kun":["み.る"]},"詞":{"g":6,"on":["し"],"kun":["ことば"]},"詩":{"g":3,"on":["し"],"kun":["うた"]},"試":{"g":4,"on":["し"],"kun":["こころ.みる","ため.す"]},"誌":{"g":6,"on":["し"],"kun":[]},"資":{"g":5,"on":["し"],"kun":[]},"飼":{"g":5,"on":["し"],"kun":["か.う"]},"歯":{"g":3,"on":["し"],"kun":["よわい","は","よわ.い","よわい.する"]},"事":{"g":3,"on":["じ","ず"],"kun":["こと","つか.う","つか.える"]},"似":{"g":5,"on":["じ"],"kun":["に.る","ひ.る"]},"児":{"g":4,"on":["じ","に","げい"],"kun":["こ"]},"字":{"g":1,"on":["じ"],"kun":["あざ","あざな"]},"寺":{"g":2,"on":["じ"],"kun":["てら"]},"持":{"g":3,"on":["じ"],"kun":["も.つ","も.てる"]},"時":{"g":2,"on":["じ"],"kun":["とき"]},"次":{"g":3,"on":["じ","し"],"kun":["つ.ぐ","つぎ"]},"滋":{"g":4,"on":["じ","し"],"kun":[]},"治":{"g":4,"on":["じ","ち"],"kun":["おさ.める","おさ.まる","なお.る","なお.す"]},"磁":{"g":6,"on":["じ"],"kun":[]},"示":{"g":5,"on":["じ","し"],"kun":["しめ.す"]},"耳":{"g":1,"on":["じ"],"kun":["みみ"]},"自":{"g":2,"on":["じ","し"],"kun":["みずか.ら","おの.ずから","おの.ずと"]},"辞":{"g":4,"on":["じ"],"kun":["や.める","いな.む"]},"鹿":{"g":4,"on":["ろく"],"kun":["しか","か"]},"式":{"g":3,"on":["しき"],"kun":[]},"識":{"g":5,"on":["しき"],"kun":["し.る","しる.す"]},"七":{"g":1,"on":["しち"],"kun":["なな","なな.つ","なの"]},"失":{"g":4,"on":["しつ"],"kun":["うしな.う","う.せる"]},"室":{"g":2,"on":["しつ"],"kun":["むろ"]},"質":{"g":5,"on":["しつ","しち","ち"],"kun":["たち","ただ.す","もと","わりふ"]},"実":{"g":3,"on":["じつ","しつ"],"kun":["み","みの.る","まこと","みの","みち.る"]},"舎":{"g":5,"on":["しゃ","せき"],"kun":["やど.る"]},"写":{"g":3,"on":["しゃ","じゃ"],"kun":["うつ.す","うつ.る","うつ.し"]},"射":{"g":6,"on":["しゃ"],"kun":["い.る","さ.す","う.つ"]},"捨":{"g":6,"on":["しゃ"],"kun":["す.てる"]},"社":{"g":2,"on":["しゃ"],"kun":["やしろ"]},"者":{"g":3,"on":["しゃ"],"kun":["もの"]},"謝":{"g":5,"on":["しゃ"],"kun":["あやま.る"]},"車":{"g":1,"on":["しゃ"],"kun":["くるま"]},"借":{"g":4,"on":["しゃく"],"kun":["か.りる"]},"尺":{"g":6,"on":["しゃく","せき"],"kun":["さし"]},"若":{"g":6,"on":["じゃく","にゃく","にゃ"],"kun":["わか.い","も.しくわ","も.し","も.しくは","ごと.し"]},"弱":{"g":2,"on":["じゃく"],"kun":["よわ.い","よわ.る","よわ.まる","よわ.める"]},"主":{"g":3,"on":["しゅ","す","しゅう"],"kun":["ぬし","おも","あるじ"]},"取":{"g":3,"on":["しゅ"],"kun":["と.る","と.り","とり"]},"守":{"g":3,"on":["しゅ","す"],"kun":["まも.る","まも.り","もり","かみ"]},"手":{"g":1,"on":["しゅ","ず"],"kun":["て"]},"種":{"g":4,"on":["しゅ"],"kun":["たね"]},"酒":{"g":3,"on":["しゅ"],"kun":["さけ"]},"首":{"g":2,"on":["しゅ"],"kun":["くび"]},"受":{"g":3,"on":["じゅ"],"kun":["う.ける","う.かる"]},"授":{"g":5,"on":["じゅ"],"kun":["さず.ける","さず.かる"]},"樹":{"g":6,"on":["じゅ"],"kun":["き"]},"収":{"g":6,"on":["しゅう"],"kun":["おさ.める","おさ.まる"]},"周":{"g":4,"on":["しゅう"],"kun":["まわ.り"]},"宗":{"g":6,"on":["しゅう","そう"],"kun":["むね"]},"就":{"g":6,"on":["しゅう","じゅ"],"kun":["つ.く","つ.ける"]},"州":{"g":3,"on":["しゅう","す"],"kun":["す"]},"修":{"g":5,"on":["しゅう","しゅ"],"kun":["おさ.める","おさ.まる"]},"拾":{"g":3,"on":["しゅう","じゅう"],"kun":["ひろ.う"]},"秋":{"g":2,"on":["しゅう"],"kun":["あき","とき"]},"終":{"g":3,"on":["しゅう"],"kun":["お.わる","おわ.る","お.える","つい","つい.に"]},"習":{"g":3,"on":["しゅう","じゅ"],"kun":["なら.う","なら.い"]},"衆":{"g":6,"on":["しゅう","しゅ"],"kun":["おお.い"]},"週":{"g":2,"on":["しゅう"],"kun":[]},"集":{"g":3,"on":["しゅう"],"kun":["あつ.まる","あつ.める","つど.う"]},"住":{"g":3,"on":["じゅう","ぢゅう","ちゅう"],"kun":["す.む","す.まう"]},"十":{"g":1,"on":["じゅう","じっ","じゅっ"],"kun":["とお","と","そ"]},"従":{"g":6,"on":["じゅう","しょう","じゅ"],"kun":["したが.う","したが.える","より"]},"縦":{"g":6,"on":["じゅう"],"kun":["たて"]},"重":{"g":3,"on":["じゅう","ちょう"],"kun":["え","おも.い","おも.り","おも.なう","かさ.ねる","かさ.なる","おも"]},"宿":{"g":3,"on":["しゅく"],"kun":["やど","やど.る","やど.す"]},"祝":{"g":4,"on":["しゅく","しゅう"],"kun":["いわ.う"]},"縮":{"g":6,"on":["しゅく"],"kun":["ちぢ.む","ちぢ.まる","ちぢ.める","ちぢ.れる","ちぢ.らす"]},"熟":{"g":6,"on":["じゅく"],"kun":["う.れる"]},"出":{"g":1,"on":["しゅつ","すい"],"kun":["で.る","だ.す","い.でる","い.だす"]},"術":{"g":5,"on":["じゅつ"],"kun":["すべ"]},"述":{"g":5,"on":["じゅつ"],"kun":["の.べる"]},"春":{"g":2,"on":["しゅん"],"kun":["はる"]},"準":{"g":5,"on":["じゅん"],"kun":["じゅん.じる","じゅん.ずる","なぞら.える","のり","ひと.しい","みずもり"]},"純":{"g":6,"on":["じゅん"],"kun":[]},"順":{"g":4,"on":["じゅん"],"kun":[]},"処":{"g":6,"on":["しょ"],"kun":["ところ","お.る"]},"初":{"g":4,"on":["しょ"],"kun":["はじ.め","はじ.めて","はつ"]},"所":{"g":3,"on":["しょ"],"kun":["ところ","どころ","とこ"]},"暑":{"g":3,"on":["しょ"],"kun":["あつ.い"]},"署":{"g":6,"on":["しょ"],"kun":[]},"書":{"g":2,"on":["しょ"],"kun":["か.く"]},"諸":{"g":6,"on":["しょ"],"kun":["もろ"]},"助":{"g":3,"on":["じょ"],"kun":["たす.ける","たす.かる","す.ける","すけ"]},"女":{"g":1,"on":["じょ","にょ","にょう"],"kun":["おんな","め"]},"序":{"g":5,"on":["じょ"],"kun":["つい.で","ついで"]},"除":{"g":6,"on":["じょ","じ"],"kun":["のぞ.く"]},"傷":{"g":6,"on":["しょう"],"kun":["きず","いた.む","いた.める"]},"勝":{"g":3,"on":["しょう"],"kun":["か.つ","まさ.る","すぐ.れる","かつ"]},"商":{"g":3,"on":["しょう"],"kun":["あきな.う"]},"唱":{"g":4,"on":["しょう"],"kun":["とな.える"]},"将":{"g":6,"on":["しょう","そう"],"kun":["まさ.に","はた","まさ","ひきい.る","もって"]},"小":{"g":1,"on":["しょう"],"kun":["ちい.さい"]},"少":{"g":2,"on":["しょう"],"kun":["すく.ない","すこ.し"]},"承":{"g":6,"on":["しょう","じょう"],"kun":["うけたまわ.る","う.ける"]},"招":{"g":5,"on":["しょう"],"kun":["まね.く"]},"昭":{"g":3,"on":["しょう"],"kun":[]},"松":{"g":4,"on":["しょう"],"kun":["まつ"]},"消":{"g":3,"on":["しょう"],"kun":["き.える","け.す"]},"焼":{"g":4,"on":["しょう"],"kun":["や.く","や.き","や.ける"]},"照":{"g":4,"on":["しょう"],"kun":["て.る","て.らす","て.れる"]},"省":{"g":4,"on":["せい","しょう"],"kun":["かえり.みる","はぶ.く"]},"章":{"g":3,"on":["しょう"],"kun":[]},"笑":{"g":4,"on":["しょう"],"kun":["わら.う","え.む"]},"証":{"g":5,"on":["しょう"],"kun":["あかし"]},"象":{"g":5,"on":["しょう","ぞう"],"kun":["かたど.る"]},"賞":{"g":5,"on":["しょう"],"kun":["ほ.める"]},"障":{"g":6,"on":["しょう"],"kun":["さわ.る"]},"上":{"g":1,"on":["じょう","しょう","しゃん"],"kun":["うえ","かみ","あ.げる","あ.がる","あ.がり","のぼ.る","のぼ.り","のぼ.せる","のぼ.す","たてまつ.る"]},"乗":{"g":3,"on":["じょう","しょう"],"kun":["の.る","の.せる"]},"城":{"g":4,"on":["じょう","せい"],"kun":["しろ"]},"場":{"g":2,"on":["じょう","ちょう"],"kun":["ば"]},"常":{"g":5,"on":["じょう"],"kun":["つね"]},"情":{"g":5,"on":["じょう","せい"],"kun":["なさ.け"]},"条":{"g":5,"on":["じょう","ちょう","でき"],"kun":["えだ","すじ"]},"状":{"g":5,"on":["じょう"],"kun":[]},"蒸":{"g":6,"on":["じょう","せい"],"kun":["む.す","む.れる","む.らす"]},"植":{"g":3,"on":["しょく"],"kun":["う.える","う.わる"]},"織":{"g":5,"on":["しょく","しき"],"kun":["お.る","お.り","おり"]},"職":{"g":5,"on":["しょく","そく"],"kun":[]},"色":{"g":2,"on":["しょく","しき"],"kun":["いろ"]},"食":{"g":2,"on":["しょく","じき"],"kun":["く.う","く.らう","た.べる","は.む"]},"信":{"g":4,"on":["しん"],"kun":[]},"心":{"g":2,"on":["しん"],"kun":["こころ"]},"新":{"g":2,"on":["しん"],"kun":["あたら.しい","あら.た"]},"森":{"g":1,"on":["しん"],"kun":["もり"]},"深":{"g":3,"on":["しん"],"kun":["ふか.い","ふか.まる","ふか.める"]},"申":{"g":3,"on":["しん"],"kun":["もう.す","さる"]},"真":{"g":3,"on":["しん"],"kun":["ま","まこと"]},"神":{"g":3,"on":["しん","じん"],"kun":["かみ"]},"臣":{"g":4,"on":["しん","じん"],"kun":[]},"親":{"g":2,"on":["しん"],"kun":["おや","した.しい","した.しむ"]},"身":{"g":3,"on":["しん"],"kun":["み"]},"進":{"g":3,"on":["しん"],"kun":["すす.む","すす.める"]},"針":{"g":6,"on":["しん"],"kun":["はり"]},"人":{"g":1,"on":["じん","にん"],"kun":["ひと"]},"仁":{"g":6,"on":["じん","に","にん"],"kun":[]},"図":{"g":2,"on":["ず","と"],"kun":["え","はか.る"]},"垂":{"g":6,"on":["すい"],"kun":["た.れる","た.らす","た.れ","なんなんと.す"]},"推":{"g":6,"on":["すい"],"kun":["お.す"]},"水":{"g":1,"on":["すい"],"kun":["みず"]},"数":{"g":2,"on":["すう","す","さく","そく","しゅ"],"kun":["かず","かぞ.える","しばしば","せ.める","わずらわ.しい"]},"寸":{"g":6,"on":["すん"],"kun":[]},"世":{"g":3,"on":["せい","せ","そう"],"kun":["よ"]},"制":{"g":5,"on":["せい"],"kun":[]},"勢":{"g":5,"on":["せい","ぜい"],"kun":["いきお.い","はずみ"]},"性":{"g":5,"on":["せい","しょう"],"kun":["さが"]},"成":{"g":4,"on":["せい","じょう"],"kun":["な.る","な.す"]},"政":{"g":5,"on":["せい","しょう"],"kun":["まつりごと","まん"]},"整":{"g":3,"on":["せい"],"kun":["ととの.える","ととの.う"]},"星":{"g":2,"on":["せい","しょう"],"kun":["ほし"]},"晴":{"g":2,"on":["せい"],"kun":["は.れる","は.れ","は.らす"]},"正":{"g":1,"on":["せい","しょう"],"kun":["ただ.しい","ただ.す","まさ","まさ.に"]},"清":{"g":4,"on":["せい","しょう","しん"],"kun":["きよ.い","きよ.まる","きよ.める"]},"生":{"g":1,"on":["せい","しょう"],"kun":["い.きる","い.かす","い.ける","う.まれる","うま.れる","う.まれ","うまれ","う.む","お.う","は.える","は.やす","き","なま","な.る","な.す","む.す"]},"盛":{"g":6,"on":["せい","じょう"],"kun":["も.る","さか.る","さか.ん"]},"精":{"g":5,"on":["せい","しょう"],"kun":["しら.げる","くわ.しい"]},"聖":{"g":6,"on":["せい","しょう"],"kun":["ひじり"]},"声":{"g":2,"on":["せい","しょう"],"kun":["こえ"]},"製":{"g":5,"on":["せい"],"kun":[]},"西":{"g":2,"on":["せい","さい","す"],"kun":["にし"]},"誠":{"g":6,"on":["せい"],"kun":["まこと"]},"青":{"g":1,"on":["せい","しょう"],"kun":["あお","あお.い"]},"静":{"g":4,"on":["せい","じょう"],"kun":["しず.か","しず.まる","しず.める"]},"税":{"g":5,"on":["ぜい"],"kun":[]},"席":{"g":4,"on":["せき"],"kun":["むしろ"]},"昔":{"g":3,"on":["せき","しゃく"],"kun":["むかし"]},"石":{"g":1,"on":["せき","しゃく","こく"],"kun":["いし"]},"積":{"g":4,"on":["せき"],"kun":["つ.む","つ.もる","つ.もり"]},"績":{"g":5,"on":["せき"],"kun":[]},"責":{"g":5,"on":["せき"],"kun":["せ.める"]},"赤":{"g":1,"on":["せき","しゃく"],"kun":["あか","あか.い","あか.らむ","あか.らめる"]},"切":{"g":2,"on":["せつ","さい"],"kun":["き.る","き.り","き.れる","き.れ"]},"接":{"g":5,"on":["せつ","しょう"],"kun":["つ.ぐ"]},"折":{"g":4,"on":["せつ","しゃく"],"kun":["お.る","おり","お.り","お.れる"]},"設":{"g":5,"on":["せつ"],"kun":["もう.ける"]},"節":{"g":4,"on":["せつ","せち"],"kun":["ふし","のっと"]},"説":{"g":4,"on":["せつ","ぜい"],"kun":["と.く"]},"雪":{"g":2,"on":["せつ"],"kun":["ゆき"]},"絶":{"g":5,"on":["ぜつ"],"kun":["た.える","た.やす","た.つ"]},"舌":{"g":6,"on":["ぜつ"],"kun":["した"]},"先":{"g":1,"on":["せん"],"kun":["さき","ま.ず"]},"千":{"g":1,"on":["せん"],"kun":["ち"]},"宣":{"g":6,"on":["せん"],"kun":["のたま.う"]},"専":{"g":6,"on":["せん"],"kun":["もっぱ.ら"]},"川":{"g":1,"on":["せん"],"kun":["かわ"]},"戦":{"g":4,"on":["せん"],"kun":["いくさ","たたか.う","おのの.く","そよ.ぐ","わなな.く"]},"泉":{"g":6,"on":["せん"],"kun":["いずみ"]},"浅":{"g":4,"on":["せん"],"kun":["あさ.い"]},"洗":{"g":6,"on":["せん"],"kun":["あら.う"]},"染":{"g":6,"on":["せん"],"kun":["そ.める","そ.まる","し.みる","し.み"]},"線":{"g":2,"on":["せん"],"kun":["すじ"]},"船":{"g":2,"on":["せん"],"kun":["ふね"]},"選":{"g":4,"on":["せん"],"kun":["えら.ぶ","え.る","よ.る"]},"銭":{"g":6,"on":["せん","ぜん"],"kun":["ぜに","すき"]},"前":{"g":2,"on":["ぜん"],"kun":["まえ"]},"善":{"g":6,"on":["ぜん"],"kun":["よ.い","い.い","よ.く","よし.とする"]},"然":{"g":4,"on":["ぜん","ねん"],"kun":["しか","しか.り","しか.し","さ"]},"全":{"g":3,"on":["ぜん"],"kun":["まった.く","すべ.て"]},"祖":{"g":5,"on":["そ"],"kun":[]},"素":{"g":5,"on":["そ","す"],"kun":["もと"]},"組":{"g":2,"on":["そ"],"kun":["く.む","くみ"]},"創":{"g":6,"on":["そう","しょう"],"kun":["つく.る","はじ.める","きず","けず.しける"]},"倉":{"g":4,"on":["そう"],"kun":["くら"]},"奏":{"g":6,"on":["そう"],"kun":["かな.でる"]},"層":{"g":6,"on":["そう"],"kun":[]},"想":{"g":3,"on":["そう","そ"],"kun":["おも.う"]},"操":{"g":6,"on":["そう","さん"],"kun":["みさお","あやつ.る"]},"早":{"g":1,"on":["そう","さっ"],"kun":["はや.い","はや","はや.まる","はや.める"]},"巣":{"g":4,"on":["そう"],"kun":["す","す.くう"]},"争":{"g":4,"on":["そう"],"kun":["あらそ.う","いか.でか"]},"相":{"g":3,"on":["そう","しょう"],"kun":[]},"窓":{"g":6,"on":["そう","す"],"kun":["まど","てんまど","けむだし"]},"総":{"g":5,"on":["そう"],"kun":["す.べて","すべ.て","ふさ"]},"草":{"g":1,"on":["そう"],"kun":["くさ"]},"装":{"g":6,"on":["そう","しょう"],"kun":["よそお.う","よそお.い"]},"走":{"g":2,"on":["そう"],"kun":["はし.る"]},"送":{"g":3,"on":["そう"],"kun":["おく.る"]},"像":{"g":5,"on":["ぞう"],"kun":[]},"増":{"g":5,"on":["ぞう"],"kun":["ま.す","ま.し","ふ.える","ふ.やす"]},"臓":{"g":6,"on":["ぞう"],"kun":["はらわた"]},"蔵":{"g":6,"on":["ぞう","そう"],"kun":["くら","おさ.める","かく.れる"]},"造":{"g":5,"on":["ぞう"],"kun":["つく.る","つく.り"]},"側":{"g":4,"on":["そく"],"kun":["かわ","がわ","そば"]},"則":{"g":5,"on":["そく"],"kun":["のっと.る","のり","すなわち"]},"息":{"g":3,"on":["そく"],"kun":["いき"]},"束":{"g":4,"on":["そく"],"kun":["たば","たば.ねる","つか","つか.ねる"]},"測":{"g":5,"on":["そく"],"kun":["はか.る"]},"足":{"g":1,"on":["そく"],"kun":["あし","た.りる","た.る","た.す"]},"速":{"g":3,"on":["そく"],"kun":["はや.い","はや.める","すみ.やか"]},"属":{"g":5,"on":["ぞく","しょく"],"kun":["さかん","つく","やから"]},"族":{"g":3,"on":["ぞく"],"kun":[]},"続":{"g":4,"on":["ぞく","しょく","こう","きょう"],"kun":["つづ.く","つづ.ける","つぐ.ない"]},"卒":{"g":4,"on":["そつ","しゅつ"],"kun":["そっ.する","お.える","お.わる","ついに","にわか"]},"存":{"g":6,"on":["そん","ぞん"],"kun":["ながら.える","あ.る","たも.つ","と.う"]},"孫":{"g":4,"on":["そん"],"kun":["まご"]},"尊":{"g":6,"on":["そん"],"kun":["たっと.い","とうと.い","たっと.ぶ","とうと.ぶ"]},"損":{"g":5,"on":["そん"],"kun":["そこ.なう","そこな.う","そこ.ねる"]},"村":{"g":1,"on":["そん"],"kun":["むら"]},"他":{"g":3,"on":["た"],"kun":["ほか"]},"多":{"g":2,"on":["た"],"kun":["おお.い","まさ.に","まさ.る"]},"太":{"g":2,"on":["たい","た"],"kun":["ふと.い","ふと.る"]},"打":{"g":3,"on":["だ","だーす"],"kun":["う.つ","ぶ.つ"]},"体":{"g":2,"on":["たい","てい"],"kun":["からだ","かたち"]},"対":{"g":3,"on":["たい","つい"],"kun":["あいて","こた.える","そろ.い","つれあ.い","なら.ぶ","むか.う"]},"帯":{"g":4,"on":["たい"],"kun":["お.びる","おび"]},"待":{"g":3,"on":["たい"],"kun":["ま.つ"]},"態":{"g":5,"on":["たい"],"kun":["わざ.と"]},"貸":{"g":5,"on":["たい"],"kun":["か.す"]},"退":{"g":6,"on":["たい"],"kun":["しりぞ.く","しりぞ.ける","ひ.く","の.く","の.ける","ど.く"]},"隊":{"g":4,"on":["たい"],"kun":[]},"代":{"g":3,"on":["だい","たい"],"kun":["か.わる","かわ.る","かわ.り","か.わり","か.える","よ","しろ"]},"台":{"g":2,"on":["だい","たい"],"kun":["うてな","われ","つかさ"]},"大":{"g":1,"on":["だい","たい"],"kun":["おお.きい"]},"第":{"g":3,"on":["だい","てい"],"kun":[]},"題":{"g":3,"on":["だい"],"kun":[]},"宅":{"g":6,"on":["たく"],"kun":[]},"達":{"g":4,"on":["たつ","だ"],"kun":[]},"谷":{"g":2,"on":["こく"],"kun":["たに","きわ.まる"]},"単":{"g":4,"on":["たん"],"kun":["ひとえ"]},"担":{"g":6,"on":["たん"],"kun":["かつ.ぐ","にな.う"]},"探":{"g":6,"on":["たん"],"kun":["さぐ.る","さが.す"]},"炭":{"g":3,"on":["たん"],"kun":["すみ"]},"短":{"g":3,"on":["たん"],"kun":["みじか.い"]},"誕":{"g":6,"on":["たん"],"kun":[]},"団":{"g":5,"on":["だん","とん"],"kun":["かたまり","まる.い"]},"断":{"g":5,"on":["だん"],"kun":["た.つ","ことわ.る","さだ.める"]},"暖":{"g":6,"on":["だん","のん"],"kun":["あたた.か","あたた.かい","あたた.まる","あたた.める"]},"段":{"g":6,"on":["だん","たん"],"kun":[]},"男":{"g":1,"on":["だん","なん"],"kun":["おとこ","お"]},"談":{"g":3,"on":["だん"],"kun":[]},"値":{"g":6,"on":["ち"],"kun":["ね","あたい"]},"知":{"g":2,"on":["ち"],"kun":["し.る","し.らせる"]},"地":{"g":2,"on":["ち","じ"],"kun":[]},"池":{"g":2,"on":["ち"],"kun":["いけ"]},"置":{"g":4,"on":["ち"],"kun":["お.く"]},"築":{"g":5,"on":["ちく"],"kun":["きず.く"]},"竹":{"g":1,"on":["ちく"],"kun":["たけ"]},"茶":{"g":2,"on":["ちゃ","さ"],"kun":[]},"着":{"g":3,"on":["ちゃく","じゃく"],"kun":["き.る","き.せる","つ.く","つ.ける"]},"中":{"g":1,"on":["ちゅう"],"kun":["なか","うち","あた.る"]},"仲":{"g":4,"on":["ちゅう"],"kun":["なか"]},"宙":{"g":6,"on":["ちゅう"],"kun":[]},"忠":{"g":6,"on":["ちゅう"],"kun":[]},"昼":{"g":2,"on":["ちゅう"],"kun":["ひる"]},"柱":{"g":3,"on":["ちゅう"],"kun":["はしら"]},"注":{"g":3,"on":["ちゅう"],"kun":["そそ.ぐ","さ.す","つ.ぐ"]},"虫":{"g":1,"on":["ちゅう","き"],"kun":["むし"]},"著":{"g":6,"on":["ちょ","ちゃく"],"kun":["あらわ.す","いちじる.しい"]},"貯":{"g":5,"on":["ちょ"],"kun":["た.める","たくわ.える"]},"丁":{"g":3,"on":["ちょう","てい","ちん","とう","ち"],"kun":["ひのと"]},"兆":{"g":4,"on":["ちょう"],"kun":["きざ.す","きざ.し"]},"帳":{"g":3,"on":["ちょう"],"kun":["とばり"]},"庁":{"g":6,"on":["ちょう","てい"],"kun":["やくしょ"]},"張":{"g":5,"on":["ちょう"],"kun":["は.る"]},"朝":{"g":2,"on":["ちょう"],"kun":["あさ"]},"潮":{"g":6,"on":["ちょう"],"kun":["しお","うしお"]},"町":{"g":1,"on":["ちょう"],"kun":["まち"]},"腸":{"g":6,"on":["ちょう"],"kun":["はらわた","わた"]},"調":{"g":3,"on":["ちょう"],"kun":["しら.べる","しら.べ","ととの.う","ととの.える"]},"長":{"g":2,"on":["ちょう"],"kun":["なが.い","おさ"]},"頂":{"g":6,"on":["ちょう"],"kun":["いただ.く","いただき"]},"鳥":{"g":2,"on":["ちょう"],"kun":["とり"]},"直":{"g":2,"on":["ちょく","じき","じか"],"kun":["ただ.ちに","なお.す","なお.る","なお.き","す.ぐ"]},"賃":{"g":6,"on":["ちん"],"kun":[]},"追":{"g":3,"on":["つい"],"kun":["お.う"]},"痛":{"g":6,"on":["つう"],"kun":["いた.い","いた.む","いた.ましい","いた.める"]},"通":{"g":2,"on":["つう","つ"],"kun":["とお.る","とお.り","とお.す","とお.し","かよ.う"]},"低":{"g":4,"on":["てい"],"kun":["ひく.い","ひく.める","ひく.まる"]},"停":{"g":5,"on":["てい"],"kun":["と.める","と.まる"]},"定":{"g":3,"on":["てい","じょう"],"kun":["さだ.める","さだ.まる","さだ.か"]},"底":{"g":4,"on":["てい"],"kun":["そこ"]},"庭":{"g":3,"on":["てい"],"kun":["にわ"]},"弟":{"g":2,"on":["てい","だい","で"],"kun":["おとうと"]},"提":{"g":5,"on":["てい","ちょう","だい"],"kun":["さ.げる"]},"程":{"g":5,"on":["てい"],"kun":["ほど"]},"敵":{"g":6,"on":["てき"],"kun":["かたき","あだ","かな.う"]},"的":{"g":4,"on":["てき"],"kun":["まと"]},"笛":{"g":3,"on":["てき"],"kun":["ふえ"]},"適":{"g":5,"on":["てき"],"kun":["かな.う"]},"鉄":{"g":3,"on":["てつ"],"kun":["くろがね"]},"典":{"g":4,"on":["てん","でん"],"kun":["ふみ","のり"]},"天":{"g":1,"on":["てん"],"kun":["あまつ","あめ"]},"展":{"g":6,"on":["てん"],"kun":[]},"店":{"g":2,"on":["てん"],"kun":["みせ","たな"]},"転":{"g":3,"on":["てん"],"kun":["ころ.がる","ころ.げる","ころ.がす","ころ.ぶ","まろ.ぶ","うたた","うつ.る","くる.めく"]},"点":{"g":2,"on":["てん"],"kun":["つ.ける","つ.く","た.てる","さ.す","とぼ.す","とも.す","ぼち"]},"伝":{"g":4,"on":["でん","てん"],"kun":["つた.わる","つた.える","つた.う","つだ.う","つて"]},"田":{"g":1,"on":["でん"],"kun":["た"]},"電":{"g":2,"on":["でん"],"kun":[]},"徒":{"g":4,"on":["と"],"kun":["いたずら","あだ"]},"登":{"g":3,"on":["とう","と","どう","しょう","ちょう"],"kun":["のぼ.る","あ.がる"]},"都":{"g":3,"on":["と","つ"],"kun":["みやこ"]},"努":{"g":4,"on":["ど"],"kun":["つと.める"]},"度":{"g":3,"on":["ど","と","たく"],"kun":["たび"]},"土":{"g":1,"on":["ど","と"],"kun":["つち"]},"党":{"g":6,"on":["とう"],"kun":["なかま","むら"]},"冬":{"g":2,"on":["とう"],"kun":["ふゆ"]},"刀":{"g":2,"on":["とう"],"kun":["かたな","そり"]},"島":{"g":3,"on":["とう"],"kun":["しま"]},"投":{"g":3,"on":["とう"],"kun":["な.げる"]},"東":{"g":2,"on":["とう"],"kun":["ひがし"]},"湯":{"g":3,"on":["とう"],"kun":["ゆ"]},"灯":{"g":4,"on":["とう"],"kun":["ひ","ともしび","とも.す","あかり"]},"当":{"g":2,"on":["とう"],"kun":["あ.たる","あ.たり","あ.てる","あ.て","まさ.に","まさ.にべし"]},"等":{"g":3,"on":["とう"],"kun":["ひと.しい","など"]},"答":{"g":2,"on":["とう"],"kun":["こた.える","こた.え"]},"糖":{"g":6,"on":["とう"],"kun":[]},"統":{"g":5,"on":["とう"],"kun":["す.べる"]},"討":{"g":6,"on":["とう"],"kun":["う.つ"]},"豆":{"g":3,"on":["とう","ず"],"kun":["まめ"]},"頭":{"g":2,"on":["とう","ず","と"],"kun":["あたま","かしら","かぶり"]},"働":{"g":4,"on":["どう"],"kun":["はたら.く"]},"動":{"g":3,"on":["どう"],"kun":["うご.く","うご.かす"]},"同":{"g":2,"on":["どう"],"kun":["おな.じ"]},"堂":{"g":5,"on":["どう"],"kun":[]},"導":{"g":5,"on":["どう"],"kun":["みちび.く"]},"童":{"g":3,"on":["どう"],"kun":["わらべ"]},"道":{"g":2,"on":["どう","とう"],"kun":["みち","いう"]},"銅":{"g":5,"on":["どう"],"kun":["あかがね"]},"得":{"g":5,"on":["とく"],"kun":["え.る","う.る"]},"徳":{"g":4,"on":["とく"],"kun":[]},"特":{"g":4,"on":["とく"],"kun":[]},"毒":{"g":5,"on":["どく"],"kun":[]},"独":{"g":5,"on":["どく","とく"],"kun":["ひと.り"]},"読":{"g":2,"on":["どく","とく","とう"],"kun":["よ.む"]},"栃":{"g":4,"on":[],"kun":["とち"]},"届":{"g":6,"on":["かい"],"kun":["とど.ける","とど.く"]},"奈":{"g":4,"on":["な","ない","だい"],"kun":["いかん","からなし"]},"内":{"g":2,"on":["ない","だい"],"kun":["うち"]},"縄":{"g":4,"on":["じょう"],"kun":["なわ","ただ.す"]},"南":{"g":2,"on":["なん","な"],"kun":["みなみ"]},"難":{"g":6,"on":["なん"],"kun":["かた.い","むずか.しい","むづか.しい","むつか.しい"]},"二":{"g":1,"on":["に","じ"],"kun":["ふた","ふた.つ","ふたたび"]},"肉":{"g":2,"on":["にく"],"kun":["しし"]},"日":{"g":1,"on":["にち","じつ"],"kun":["ひ"]},"乳":{"g":6,"on":["にゅう"],"kun":["ちち","ち"]},"入":{"g":1,"on":["にゅう","じゅ"],"kun":["い.る","い.れる","はい.る"]},"任":{"g":5,"on":["にん"],"kun":["まか.せる","まか.す"]},"認":{"g":6,"on":["にん"],"kun":["みと.める","したた.める"]},"熱":{"g":4,"on":["ねつ"],"kun":["あつ.い"]},"年":{"g":1,"on":["ねん"],"kun":["とし"]},"念":{"g":4,"on":["ねん"],"kun":[]},"燃":{"g":5,"on":["ねん"],"kun":["も.える","も.やす","も.す"]},"納":{"g":6,"on":["のう","なっ","な","なん","とう"],"kun":["おさ.める","おさ.まる"]},"能":{"g":5,"on":["のう"],"kun":["よ.く","あた.う"]},"脳":{"g":6,"on":["のう","どう"],"kun":["のうずる"]},"農":{"g":3,"on":["のう"],"kun":[]},"波":{"g":3,"on":["は"],"kun":["なみ"]},"派":{"g":6,"on":["は"],"kun":[]},"破":{"g":5,"on":["は"],"kun":["やぶ.る","やぶ.れる","わ.れる"]},"馬":{"g":2,"on":["ば","め","ま","ぼ","も"],"kun":["うま","ま"]},"俳":{"g":6,"on":["はい"],"kun":[]},"拝":{"g":6,"on":["はい"],"kun":["おが.む","おろが.む"]},"敗":{"g":4,"on":["はい"],"kun":["やぶ.れる"]},"背":{"g":6,"on":["はい"],"kun":["せ","せい","そむ.く","そむ.ける"]},"肺":{"g":6,"on":["はい"],"kun":[]},"配":{"g":3,"on":["はい"],"kun":["くば.る"]},"倍":{"g":3,"on":["ばい"],"kun":[]},"梅":{"g":4,"on":["ばい"],"kun":["うめ"]},"買":{"g":2,"on":["ばい"],"kun":["か.う"]},"売":{"g":2,"on":["ばい"],"kun":["う.る","う.れる"]},"博":{"g":4,"on":["はく","ばく"],"kun":[]},"白":{"g":1,"on":["はく","びゃく"],"kun":["しろ","しろ.い"]},"麦":{"g":2,"on":["ばく"],"kun":["むぎ"]},"箱":{"g":3,"on":["そう"],"kun":["はこ"]},"畑":{"g":3,"on":[],"kun":["はた","はたけ"]},"八":{"g":1,"on":["はち","はつ"],"kun":["や","や.つ","やっ.つ","よう"]},"発":{"g":3,"on":["はつ","ほつ"],"kun":["た.つ","あば.く","おこ.る","つか.わす","はな.つ"]},"判":{"g":5,"on":["はん","ばん"],"kun":["わか.る"]},"半":{"g":2,"on":["はん"],"kun":["なか.ば"]},"反":{"g":3,"on":["はん","ほん","たん","ほ"],"kun":["そ.る","そ.らす","かえ.す","かえ.る"]},"板":{"g":3,"on":["はん","ばん"],"kun":["いた"]},"版":{"g":5,"on":["はん"],"kun":[]},"犯":{"g":5,"on":["はん","ぼん"],"kun":["おか.す"]},"班":{"g":6,"on":["はん"],"kun":[]},"飯":{"g":4,"on":["はん"],"kun":["めし"]},"晩":{"g":6,"on":["ばん"],"kun":[]},"番":{"g":2,"on":["ばん"],"kun":["つが.い"]},"否":{"g":6,"on":["ひ"],"kun":["いな","いや"]},"悲":{"g":3,"on":["ひ"],"kun":["かな.しい","かな.しむ"]},"批":{"g":6,"on":["ひ"],"kun":[]},"比":{"g":5,"on":["ひ"],"kun":["くら.べる"]},"皮":{"g":3,"on":["ひ"],"kun":["かわ"]},"秘":{"g":6,"on":["ひ"],"kun":["ひ.める","ひそ.か","かく.す"]},"肥":{"g":5,"on":["ひ"],"kun":["こ.える","こえ","こ.やす","こ.やし","ふと.る"]},"費":{"g":5,"on":["ひ"],"kun":["つい.やす","つい.える"]},"非":{"g":5,"on":["ひ"],"kun":["あら.ず"]},"飛":{"g":4,"on":["ひ"],"kun":["と.ぶ","と.ばす"]},"備":{"g":5,"on":["び"],"kun":["そな.える","そな.わる","つぶさ.に"]},"美":{"g":3,"on":["び","み"],"kun":["うつく.しい"]},"鼻":{"g":3,"on":["び"],"kun":["はな"]},"必":{"g":4,"on":["ひつ"],"kun":["かなら.ず"]},"筆":{"g":3,"on":["ひつ"],"kun":["ふで"]},"媛":{"g":4,"on":["えん"],"kun":["ひめ"]},"百":{"g":1,"on":["ひゃく","びゃく"],"kun":["もも"]},"俵":{"g":6,"on":["ひょう"],"kun":["たわら"]},"標":{"g":4,"on":["ひょう"],"kun":["しるべ","しるし"]},"氷":{"g":3,"on":["ひょう"],"kun":["こおり","ひ","こお.る"]},"票":{"g":4,"on":["ひょう"],"kun":[]},"表":{"g":3,"on":["ひょう"],"kun":["おもて","あらわ.す","あらわ.れる","あら.わす"]},"評":{"g":5,"on":["ひょう"],"kun":[]},"病":{"g":3,"on":["びょう","へい"],"kun":["や.む","やまい"]},"秒":{"g":3,"on":["びょう"],"kun":[]},"品":{"g":3,"on":["ひん","ほん"],"kun":["しな"]},"貧":{"g":5,"on":["ひん","びん"],"kun":["まず.しい"]},"不":{"g":4,"on":["ふ","ぶ"],"kun":[]},"付":{"g":4,"on":["ふ"],"kun":["つ.ける","つ.け","つ.く","つ.き"]},"夫":{"g":4,"on":["ふ","ふう","ぶ"],"kun":["おっと","それ"]},"婦":{"g":5,"on":["ふ"],"kun":["よめ"]},"富":{"g":4,"on":["ふ","ふう"],"kun":["と.む","とみ"]},"布":{"g":5,"on":["ふ","ほ"],"kun":["ぬの","し.く","きれ"]},"府":{"g":4,"on":["ふ"],"kun":[]},"父":{"g":2,"on":["ふ"],"kun":["ちち"]},"負":{"g":3,"on":["ふ"],"kun":["ま.ける","ま.かす","お.う"]},"阜":{"g":4,"on":["ふ","ふう"],"kun":[]},"武":{"g":5,"on":["ぶ","む"],"kun":["たけ","たけ.し"]},"部":{"g":3,"on":["ぶ"],"kun":[]},"風":{"g":2,"on":["ふう","ふ"],"kun":["かぜ"]},"副":{"g":4,"on":["ふく"],"kun":[]},"復":{"g":5,"on":["ふく"],"kun":["また"]},"服":{"g":3,"on":["ふく"],"kun":[]},"福":{"g":3,"on":["ふく"],"kun":[]},"腹":{"g":6,"on":["ふく"],"kun":["はら"]},"複":{"g":5,"on":["ふく"],"kun":[]},"仏":{"g":5,"on":["ぶつ","ふつ"],"kun":["ほとけ"]},"物":{"g":3,"on":["ぶつ","もつ"],"kun":["もの"]},"分":{"g":2,"on":["ぶん","ふん","ぶ"],"kun":["わ.ける","わ.け","わ.かれる","わ.かる","わ.かつ"]},"奮":{"g":6,"on":["ふん"],"kun":["ふる.う"]},"粉":{"g":5,"on":["ふん"],"kun":["デシメートル","こ","こな"]},"文":{"g":1,"on":["ぶん","もん"],"kun":["ふみ","あや"]},"聞":{"g":2,"on":["ぶん","もん"],"kun":["き.く","き.こえる"]},"兵":{"g":4,"on":["へい","ひょう"],"kun":["つわもの"]},"平":{"g":3,"on":["へい","びょう","ひょう"],"kun":["たい.ら","たい.らげる","ひら"]},"並":{"g":6,"on":["へい","ほう"],"kun":["な.み","なみ","なら.べる","なら.ぶ","なら.びに"]},"閉":{"g":6,"on":["へい"],"kun":["と.じる","と.ざす","し.める","し.まる","た.てる"]},"陛":{"g":6,"on":["へい"],"kun":[]},"米":{"g":2,"on":["べい","まい","めえとる"],"kun":["こめ","よね"]},"別":{"g":4,"on":["べつ"],"kun":["わか.れる","わ.ける"]},"変":{"g":4,"on":["へん"],"kun":["か.わる","か.わり","か.える"]},"片":{"g":6,"on":["へん"],"kun":["かた"]},"編":{"g":5,"on":["へん"],"kun":["あ.む"]},"辺":{"g":4,"on":["へん"],"kun":["あた.り","ほと.り"]},"返":{"g":3,"on":["へん"],"kun":["かえ.す","かえ.る"]},"便":{"g":4,"on":["べん","びん"],"kun":["たよ.り"]},"勉":{"g":3,"on":["べん"],"kun":["つと.める"]},"弁":{"g":5,"on":["べん","へん"],"kun":["かんむり","わきま.える","わ.ける","はなびら","あらそ.う"]},"保":{"g":5,"on":["ほ","ほう"],"kun":["たも.つ"]},"歩":{"g":2,"on":["ほ","ぶ","ふ"],"kun":["ある.く","あゆ.む"]},"補":{"g":6,"on":["ほ"],"kun":["おぎな.う"]},"墓":{"g":5,"on":["ぼ"],"kun":["はか"]},"暮":{"g":6,"on":["ぼ"],"kun":["く.れる","く.らす"]},"母":{"g":2,"on":["ぼ"],"kun":["はは","も"]},"包":{"g":4,"on":["ほう"],"kun":["つつ.む","くる.む"]},"報":{"g":5,"on":["ほう"],"kun":["むく.いる"]},"宝":{"g":6,"on":["ほう"],"kun":["たから"]},"放":{"g":3,"on":["ほう"],"kun":["はな.す","はな.つ","はな.れる","こ.く","ほう.る"]},"方":{"g":2,"on":["ほう"],"kun":["かた"]},"法":{"g":4,"on":["ほう","はっ","ほっ","ふらん"],"kun":["のり"]},"訪":{"g":6,"on":["ほう"],"kun":["おとず.れる","たず.ねる","と.う"]},"豊":{"g":5,"on":["ほう","ぶ"],"kun":["ゆた.か","とよ"]},"亡":{"g":6,"on":["ぼう","もう"],"kun":["な.い","ほろ.びる","ほろ.ぶ","ほろ.ぼす"]},"忘":{"g":6,"on":["ぼう"],"kun":["わす.れる"]},"暴":{"g":5,"on":["ぼう","ばく"],"kun":["あば.く","あば.れる"]},"望":{"g":4,"on":["ぼう","もう"],"kun":["のぞ.む","もち"]},"棒":{"g":6,"on":["ぼう"],"kun":[]},"貿":{"g":5,"on":["ぼう"],"kun":[]},"防":{"g":5,"on":["ぼう"],"kun":["ふせ.ぐ"]},"北":{"g":2,"on":["ほく"],"kun":["きた"]},"牧":{"g":4,"on":["ぼく"],"kun":["まき"]},"本":{"g":1,"on":["ほん"],"kun":["もと"]},"妹":{"g":2,"on":["まい"],"kun":["いもうと"]},"枚":{"g":6,"on":["まい","ばい"],"kun":[]},"毎":{"g":2,"on":["まい"],"kun":["ごと"]},"幕":{"g":6,"on":["まく","ばく"],"kun":["とばり"]},"末":{"g":4,"on":["まつ","ばつ"],"kun":["すえ","うら","うれ"]},"万":{"g":2,"on":["まん","ばん"],"kun":["よろず"]},"満":{"g":4,"on":["まん","ばん"],"kun":["み.ちる","み.つ","み.たす"]},"味":{"g":3,"on":["み"],"kun":["あじ","あじ.わう"]},"未":{"g":4,"on":["み","び"],"kun":["いま.だ","ま.だ","ひつじ"]},"密":{"g":6,"on":["みつ"],"kun":["ひそ.か"]},"脈":{"g":5,"on":["みゃく"],"kun":["すじ"]},"民":{"g":4,"on":["みん"],"kun":["たみ"]},"務":{"g":5,"on":["む"],"kun":["つと.める"]},"夢":{"g":5,"on":["む","ぼう"],"kun":["ゆめ","ゆめ.みる","くら.い"]},"無":{"g":4,"on":["む","ぶ"],"kun":["な.い"]},"名":{"g":1,"on":["めい","みょう"],"kun":["な"]},"命":{"g":3,"on":["めい","みょう"],"kun":["いのち"]},"明":{"g":2,"on":["めい","みょう","みん"],"kun":["あ.かり","あか.るい","あか.るむ","あか.らむ","あき.らか","あ.ける","あ.く","あ.くる","あ.かす"]},"盟":{"g":6,"on":["めい"],"kun":[]},"迷":{"g":5,"on":["めい"],"kun":["まよ.う"]},"鳴":{"g":2,"on":["めい"],"kun":["な.く","な.る","な.らす"]},"綿":{"g":5,"on":["めん"],"kun":["わた"]},"面":{"g":3,"on":["めん","べん"],"kun":["おも","おもて","つら"]},"模":{"g":6,"on":["も","ぼ"],"kun":[]},"毛":{"g":2,"on":["もう"],"kun":["け"]},"木":{"g":1,"on":["ぼく","もく"],"kun":["き"]},"目":{"g":1,"on":["もく","ぼく"],"kun":["め"]},"問":{"g":3,"on":["もん"],"kun":["と.う","と.い","とん"]},"門":{"g":2,"on":["もん"],"kun":["かど","と"]},"夜":{"g":2,"on":["や"],"kun":["よ","よる"]},"野":{"g":2,"on":["や","しょ"],"kun":["の"]},"矢":{"g":2,"on":["し"],"kun":["や"]},"役":{"g":3,"on":["やく","えき"],"kun":[]},"約":{"g":4,"on":["やく"],"kun":["つづ.まる","つづ.める","つづま.やか"]},"薬":{"g":3,"on":["やく"],"kun":["くすり"]},"訳":{"g":6,"on":["やく"],"kun":["わけ"]},"油":{"g":3,"on":["ゆ","ゆう"],"kun":["あぶら"]},"輸":{"g":5,"on":["ゆ","しゅ"],"kun":[]},"優":{"g":6,"on":["ゆう","う"],"kun":["やさ.しい","すぐ.れる","まさ.る"]},"勇":{"g":4,"on":["ゆう"],"kun":["いさ.む"]},"友":{"g":2,"on":["ゆう"],"kun":["とも"]},"有":{"g":3,"on":["ゆう","う"],"kun":["あ.る"]},"由":{"g":3,"on":["ゆ","ゆう","ゆい"],"kun":["よし","よ.る"]},"遊":{"g":3,"on":["ゆう","ゆ"],"kun":["あそ.ぶ","あそ.ばす"]},"郵":{"g":6,"on":["ゆう"],"kun":[]},"夕":{"g":1,"on":["せき"],"kun":["ゆう"]},"予":{"g":3,"on":["よ","しゃ"],"kun":["あらかじ.め"]},"余":{"g":5,"on":["よ"],"kun":["あま.る","あま.り","あま.す","あんま.り"]},"預":{"g":6,"on":["よ"],"kun":["あず.ける","あず.かる"]},"幼":{"g":6,"on":["よう"],"kun":["おさな.い"]},"容":{"g":5,"on":["よう"],"kun":["い.れる"]},"曜":{"g":2,"on":["よう"],"kun":[]},"様":{"g":3,"on":["よう","しょう"],"kun":["さま","さん"]},"洋":{"g":3,"on":["よう"],"kun":[]},"用":{"g":2,"on":["よう"],"kun":["もち.いる"]},"羊":{"g":3,"on":["よう"],"kun":["ひつじ"]},"葉":{"g":3,"on":["よう"],"kun":["は"]},"要":{"g":4,"on":["よう"],"kun":["い.る","かなめ"]},"陽":{"g":3,"on":["よう"],"kun":["ひ"]},"養":{"g":4,"on":["よう","りょう"],"kun":["やしな.う"]},"欲":{"g":6,"on":["よく"],"kun":["ほっ.する","ほ.しい"]},"浴":{"g":4,"on":["よく"],"kun":["あ.びる","あ.びせる"]},"翌":{"g":6,"on":["よく"],"kun":[]},"来":{"g":2,"on":["らい","たい"],"kun":["く.る","きた.る","きた.す","き.たす","き.たる","き","こ"]},"落":{"g":3,"on":["らく"],"kun":["お.ちる","お.ち","お.とす"]},"乱":{"g":6,"on":["らん","ろん"],"kun":["みだ.れる","みだ.る","みだ.す","みだ","おさ.める","わた.る"]},"卵":{"g":6,"on":["らん"],"kun":["たまご"]},"覧":{"g":6,"on":["らん"],"kun":["み.る"]},"利":{"g":4,"on":["り"],"kun":["き.く"]},"梨":{"g":4,"on":["り"],"kun":["なし"]},"理":{"g":2,"on":["り"],"kun":["ことわり"]},"裏":{"g":6,"on":["り"],"kun":["うら"]},"里":{"g":2,"on":["り"],"kun":["さと"]},"陸":{"g":4,"on":["りく","ろく"],"kun":["おか"]},"律":{"g":6,"on":["りつ","りち","れつ"],"kun":[]},"率":{"g":5,"on":["そつ","りつ","しゅつ"],"kun":["ひき.いる"]},"立":{"g":1,"on":["りつ","りゅう","りっとる"],"kun":["た.つ","た.てる"]},"略":{"g":5,"on":["りゃく"],"kun":["ほぼ","はぶ.く","おか.す","おさ.める","はかりごと","はか.る"]},"流":{"g":3,"on":["りゅう","る"],"kun":["なが.れる","なが.れ","なが.す"]},"留":{"g":5,"on":["りゅう","る"],"kun":["と.める","と.まる","とど.める","とど.まる","るうぶる"]},"旅":{"g":3,"on":["りょ"],"kun":["たび"]},"両":{"g":3,"on":["りょう"],"kun":["てる","ふたつ"]},"料":{"g":4,"on":["りょう"],"kun":[]},"良":{"g":4,"on":["りょう"],"kun":["よ.い","い.い"]},"量":{"g":4,"on":["りょう"],"kun":["はか.る"]},"領":{"g":5,"on":["りょう"],"kun":["えり"]},"力":{"g":1,"on":["りょく","りき","りい"],"kun":["ちから"]},"緑":{"g":3,"on":["りょく","ろく"],"kun":["みどり"]},"林":{"g":1,"on":["りん"],"kun":["はやし"]},"臨":{"g":6,"on":["りん"],"kun":["のぞ.む"]},"輪":{"g":4,"on":["りん"],"kun":["わ"]},"類":{"g":4,"on":["るい"],"kun":["たぐ.い"]},"令":{"g":4,"on":["れい"],"kun":[]},"例":{"g":4,"on":["れい"],"kun":["たと.える"]},"冷":{"g":4,"on":["れい"],"kun":["つめ.たい","ひ.える","ひ.や","ひ.ややか","ひ.やす","ひ.やかす","さ.める","さ.ます"]},"礼":{"g":3,"on":["れい","らい"],"kun":[]},"歴":{"g":5,"on":["れき","れっき"],"kun":[]},"列":{"g":3,"on":["れつ","れ"],"kun":[]},"練":{"g":3,"on":["れん"],"kun":["ね.る","ね.り"]},"連":{"g":4,"on":["れん"],"kun":["つら.なる","つら.ねる","つ.れる"]},"路":{"g":3,"on":["ろ","る"],"kun":["みち"]},"労":{"g":4,"on":["ろう"],"kun":["ろう.する","いたわ.る","いた.ずき","ねぎら","つか.れる","ねぎら.う"]},"朗":{"g":6,"on":["ろう"],"kun":["ほが.らか","あき.らか"]},"老":{"g":4,"on":["ろう"],"kun":["お.いる","ふ.ける"]},"六":{"g":1,"on":["ろく","りく"],"kun":["む","む.つ","むっ.つ","むい"]},"録":{"g":4,"on":["ろく"],"kun":["しる.す","と.る"]},"論":{"g":6,"on":["ろん"],"kun":["あげつら.う"]},"和":{"g":3,"on":["わ","お","か"],"kun":["やわ.らぐ","やわ.らげる","なご.む","なご.やか","あ.える"]},"話":{"g":2,"on":["わ"],"kun":["はな.す","はなし"]}},"sentences":[{"t":"山《やま》の上《うえ》に、白《しろ》い雲《くも》が見《み》える。","lv":1},{"t":"川《かわ》の水《みず》はとても青《あお》くて、つめたい。","lv":1},{"t":"学校《がっこう》の先生《せんせい》が、大《おお》きな声《こえ》で本《ほん》を読《よ》む。","lv":1},{"t":"森《もり》の中《なか》で、赤《あか》い花《はな》を三《みっ》つ見《み》つけた。","lv":1},{"t":"犬《いぬ》と男《おとこ》の子《こ》が、草《くさ》の上《うえ》を走《はし》る。","lv":1},{"t":"右《みぎ》の手《て》に貝《かい》を、左《ひだり》の手《て》に石《いし》を持《も》つ。","lv":1},{"t":"雨《あめ》の日《ひ》は、家《いえ》の中《なか》で音楽《おんがく》を聞《き》く。","lv":1},{"t":"空《そら》に丸《まる》い月《つき》が出《で》ている。","lv":1},{"t":"王《おう》さまの玉《たま》は、金《きん》の糸《いと》でかざられている。","lv":1},{"t":"早《はや》く起《お》きて、田《た》んぼの水《みず》を見《み》に行《い》く。","lv":1},{"t":"村《むら》の竹《たけ》やぶに、虫《むし》がたくさんいる。","lv":1},{"t":"大《おお》きな音《おと》がして、みんなが立《た》ち上《あ》がった。","lv":1},{"t":"一年生《いちねんせい》の女《おんな》の子《こ》が、花《はな》を一《ひと》つくれた。","lv":1},{"t":"六人《ろくにん》で、百円《ひゃくえん》のパンと千円《せんえん》の本《ほん》を買《か》った。","lv":1},{"t":"五人《ごにん》の子《こ》どもが、四《よっ》つのボールで遊《あそ》ぶ。","lv":1},{"t":"目《め》と耳《みみ》と口《くち》を、正《ただ》しく絵《え》にかく。","lv":1},{"t":"十人《じゅうにん》の名人《めいじん》が、ふでで文字《もじ》を書《か》く。","lv":1},{"t":"夕日《ゆうひ》が、町《まち》の林《はやし》を赤《あか》くそめた。","lv":1},{"t":"天気《てんき》が良《よ》い日《ひ》は、車《くるま》で出《で》かける。","lv":1},{"t":"九月《くがつ》に、二人《ふたり》で小川《おがわ》へ行《い》った。","lv":1},{"t":"力《ちから》を入《い》れて、かたい土《つち》をほる。","lv":1},{"t":"休《やす》みの日《ひ》に、七《なな》つのたまごを見《み》つけた。","lv":1},{"t":"生《う》まれたばかりの子犬《こいぬ》が、足《あし》で立《た》つ。","lv":1},{"t":"火山《かざん》の下《した》に、小《ちい》さな町《まち》がある。","lv":1},{"t":"八《やっ》つの石《いし》をならべて、字《じ》を作《つく》る。","lv":1},{"t":"大《おお》きな木《き》の下《した》で、犬《いぬ》が休《やす》んでいる。","lv":1},{"t":"先《さき》に山道《やまみち》を上《のぼ》って、上《うえ》で待《ま》つ。","lv":1},{"t":"青空《あおぞら》の下《した》、白《しろ》い犬《いぬ》が町《まち》を走《はし》る。","lv":1},{"t":"朝《あさ》、東《ひがし》の空《そら》が明《あか》るくなり、鳥《とり》が鳴《な》いた。","lv":2},{"t":"汽車《きしゃ》が長《なが》い川《かわ》をわたって、南《みなみ》へ走《はし》る。","lv":2},{"t":"兄《あに》と弟《おとうと》は、毎朝《まいあさ》、公園《こうえん》で会《あ》う。","lv":2},{"t":"姉《あね》は、母《はは》と父《ちち》に長《なが》い手紙《てがみ》を書《か》いた。","lv":2},{"t":"母《はは》が、牛肉《ぎゅうにく》と魚《さかな》を細《ほそ》く切《き》る。","lv":2},{"t":"夏《なつ》の海《うみ》で、船《ふね》に乗《の》って遠《とお》くまで行《い》く。","lv":2},{"t":"秋《あき》の夜《よる》、雲《くも》の間《あいだ》から星《ほし》が光《ひか》る。","lv":2},{"t":"冬《ふゆ》の間《あいだ》、北《きた》の里《さと》は雪《ゆき》がふかい。","lv":2},{"t":"春《はる》になると、黄色《きいろ》い花《はな》が谷《たに》いっぱいに広《ひろ》がる。","lv":2},{"t":"弱《よわ》い風《かぜ》にも、強《つよ》い心《こころ》で立《た》ち向《む》かう。","lv":2},{"t":"昼《ひる》すぎ、野原《のはら》で友《とも》だちと会《あ》った。","lv":2},{"t":"電線《でんせん》に止《と》まった黒《くろ》い鳥《とり》の数《かず》を数《かぞ》える。","lv":2},{"t":"国語《こくご》の時間《じかん》に、新《あたら》しい漢字《かんじ》を教《おそ》わる。","lv":2},{"t":"算数《さんすう》の計算《けいさん》の答《こた》えを、紙《かみ》に書《か》く。","lv":2},{"t":"地図《ちず》を見《み》て、店《みせ》の前《まえ》まで歩《ある》く。","lv":2},{"t":"心《こころ》の中《なか》で、親《した》しい友《とも》だちの顔《かお》を思《おも》い出《だ》す。","lv":2},{"t":"台風《たいふう》が近《ちか》づき、外《そと》は強《つよ》い雨《あめ》になった。","lv":2},{"t":"教室《きょうしつ》の戸《と》を引《ひ》いて、先生《せんせい》が入《はい》ってきた。","lv":2},{"t":"午後《ごご》から、会社《かいしゃ》で父《ちち》の話《はなし》を聞《き》く。","lv":2},{"t":"古《ふる》い寺《てら》で、絵《え》と歌《うた》を楽《たの》しむ。","lv":2},{"t":"自分《じぶん》の考《かんが》えを、正直《しょうじき》に言《い》う。","lv":2},{"t":"米《こめ》と麦《むぎ》を、半分《はんぶん》ずつ分《わ》ける。","lv":2},{"t":"馬《うま》が広場《ひろば》を元気《げんき》よく回《まわ》る。","lv":2},{"t":"高《たか》い岩《いわ》の上《うえ》に、矢《や》のような形《かたち》の木《き》が立《た》つ。","lv":2},{"t":"白《しろ》い羽《はね》を広《ひろ》げて、鳥《とり》が空《そら》高《たか》くまい上《あ》がる。","lv":2},{"t":"妹《いもうと》が、色紙《いろがみ》で船《ふね》を作《つく》る。","lv":2},{"t":"毛《け》の長《なが》い犬《いぬ》が、門《もん》の前《まえ》で通《とお》る人《ひと》を見《み》ている。","lv":2},{"t":"何《なに》か食《た》べる物《もの》を、店《みせ》で買《か》う。","lv":2},{"t":"父《ちち》は用《よう》があって、外《そと》へ出《で》かけた。","lv":2},{"t":"首《くび》を回《まわ》して、後《うし》ろを見《み》る。","lv":2},{"t":"日曜日《にちようび》に、東京《とうきょう》で科学《かがく》の本《ほん》を買《か》った。","lv":2},{"t":"理科《りか》の時間《じかん》に、池《いけ》の生《い》き物《もの》を調《しら》べる。","lv":2},{"t":"今週《こんしゅう》は、毎日《まいにち》、日記《にっき》を書《か》いた。","lv":2},{"t":"工作《こうさく》の時間《じかん》に、画用紙《がようし》を丸《まる》く切《き》る。","lv":2},{"t":"交番《こうばん》の前《まえ》の道《みち》を、少《すこ》し北《きた》へ歩《ある》く。","lv":2},{"t":"弓《ゆみ》と刀《かたな》を、同《おな》じ形《かたち》の箱《はこ》に入《い》れる。","lv":2},{"t":"太《ふと》い体《からだ》の牛《うし》が、ゆっくり歩《ある》いて帰《かえ》る。","lv":2},{"t":"空《そら》が晴《は》れて、西《にし》の海《うみ》が光《ひか》って見《み》える。","lv":2},{"t":"一万《いちまん》円《えん》の時計《とけい》を、店《みせ》で売《う》っている。","lv":2},{"t":"明日《あした》の朝《あさ》、天才《てんさい》と言《い》われる先生《せんせい》が来《く》る。","lv":2},{"t":"答《こた》えが当《あ》たって、テストは百点《ひゃくてん》だった。","lv":2},{"t":"家《いえ》の内《うち》と外《そと》を、きれいにそうじする。","lv":2},{"t":"生活《せいかつ》の中《なか》で、多《おお》くのことを知《し》る。","lv":2},{"t":"東《ひがし》の方角《ほうがく》に、丸《まる》い月《つき》が出《で》た。","lv":2},{"t":"同《おな》じ組《くみ》の友《とも》だちと、校庭《こうてい》を走《はし》る。","lv":2},{"t":"新《あたら》しい本《ほん》を読《よ》んで、頭《あたま》の中《なか》に絵《え》をうかべる。","lv":2},{"t":"市《し》の広場《ひろば》で、お茶《ちゃ》を飲《の》みながら話《はな》し合《あ》う。","lv":2},{"t":"駅《えき》の前《まえ》の坂《さか》を、急《いそ》いで登《のぼ》る。","lv":3},{"t":"病院《びょういん》の三階《さんがい》で、医者《いしゃ》に相談《そうだん》する。","lv":3},{"t":"委員《いいん》の係《かかり》を決《き》めて、意見《いけん》を出《だ》し合《あ》う。","lv":3},{"t":"体育《たいいく》の時間《じかん》に、運動場《うんどうじょう》を五周《ごしゅう》走《はし》った。","lv":3},{"t":"夏《なつ》の海《うみ》で泳《およ》いで、海岸《かいがん》の岩《いわ》に登《のぼ》る。","lv":3},{"t":"図書館《としょかん》で、世界《せかい》の島《しま》について研究《けんきゅう》する。","lv":3},{"t":"学級《がっきゅう》の全員《ぜんいん》が、深《ふか》く息《いき》をすって待《ま》つ。","lv":3},{"t":"去年《きょねん》の祭《まつ》りで、太《ふと》い柱《はしら》の写真《しゃしん》をとった。","lv":3},{"t":"橋《はし》の上《うえ》から、港《みなと》に向《む》かう船《ふね》を見送《みおく》る。","lv":3},{"t":"薬局《やっきょく》で薬《くすり》を受《う》け取《と》って、家《いえ》に帰《かえ》る。","lv":3},{"t":"道具《どうぐ》を使《つか》って、庭《にわ》に木《き》を植《う》える。","lv":3},{"t":"君《きみ》の身長《しんちょう》は、去年《きょねん》より三倍《さんばい》速《はや》くのびた。","lv":3},{"t":"宿題《しゅくだい》の問題《もんだい》を、全部《ぜんぶ》一人《ひとり》で終《お》えた。","lv":3},{"t":"黒板《こくばん》の文章《ぶんしょう》を、筆《ふで》で丁《てい》ねいに写《うつ》す。","lv":3},{"t":"神社《じんじゃ》の階段《かいだん》を数《かぞ》えながら、ゆっくり進《すす》む。","lv":3},{"t":"農業《のうぎょう》をしている家《いえ》の畑《はたけ》で、羊《ひつじ》を追《お》う。","lv":3},{"t":"洋服《ようふく》を着《き》て、大《おお》きな鏡《かがみ》の前《まえ》に立《た》つ。","lv":3},{"t":"両手《りょうて》に荷物《にもつ》を持《も》って、坂道《さかみち》を下《くだ》る。","lv":3},{"t":"練習《れんしゅう》を始《はじ》めて、野球《やきゅう》の試合《しあい》に勝《か》った。","lv":3},{"t":"悪《わる》い予想《よそう》が当《あ》たって、皆《みな》が悲《かな》しい顔《かお》になった。","lv":3},{"t":"反対《はんたい》がわの部屋《へや》は、昼《ひる》でも暗《くら》い。","lv":3},{"t":"温《あたた》かい湯《ゆ》の中《なか》で、体《からだ》の力《ちから》をぬく。","lv":3},{"t":"安《やす》い品物《しなもの》を、商店《しょうてん》の店員《てんいん》にすすめられた。","lv":3},{"t":"畑《はたけ》に落《お》ちた葉《は》を集《あつ》めて、皿《さら》にのせる。","lv":3},{"t":"昔《むかし》の話《はなし》を、童話《どうわ》として本《ほん》にした。","lv":3},{"t":"横《よこ》の道路《どうろ》は、朝《あさ》だけ自由《じゆう》に通《とお》れる。","lv":3},{"t":"有名《ゆうめい》な詩《し》を、声《こえ》に出《だ》して読《よ》む。","lv":3},{"t":"指《ゆび》で鼻《はな》の頭《あたま》をおさえて、息《いき》を止《と》める。","lv":3},{"t":"仕事《しごと》の様子《ようす》を、係《かかり》の人《ひと》に注意《ちゅうい》ぶかく聞《き》く。","lv":3},{"t":"研究《けんきゅう》の記録《きろく》を、手帳《てちょう》に短《みじか》く整《ととの》える。","lv":3},{"t":"中央《ちゅうおう》の柱《はしら》に、銀色《ぎんいろ》の板《いた》をはる。","lv":3},{"t":"化石《かせき》の重《おも》さを、一秒《いちびょう》ごとに調《しら》べる。","lv":3},{"t":"苦《くる》しい時《とき》こそ、他《ほか》の人《ひと》を助《たす》ける。","lv":3},{"t":"血《ち》の流《なが》れが速《はや》くなり、鼻《はな》の皮《かわ》があつくなった。","lv":3},{"t":"第一《だいいち》の曲《きょく》が終《お》わると、客《きゃく》が礼《れい》をした。","lv":3},{"t":"県《けん》の南《みなみ》の区《く》に、美《うつく》しい湖《みずうみ》がある。","lv":3},{"t":"昭和《しょうわ》の時代《じだい》の車庫《しゃこ》に、古《ふる》い自転車《じてんしゃ》がある。","lv":3},{"t":"畑《はたけ》の根《ね》もとに、油《あぶら》を少《すこ》し配《くば》る。","lv":3},{"t":"波《なみ》の音《おと》を聞《き》きながら、旅《たび》の日記《にっき》を書《か》く。","lv":3},{"t":"笛《ふえ》の合図《あいず》で、列《れつ》を作《つく》って庭《にわ》に集《あつ》まる。","lv":3},{"t":"王宮《おうきゅう》の主《ぬし》は、幸《しあわ》せな家族《かぞく》と住《す》んでいた。","lv":3},{"t":"豆《まめ》とお酒《さけ》を、平《たい》らな皿《さら》にならべる。","lv":3},{"t":"鉄《てつ》の玉《たま》を投《な》げて、点数《てんすう》を取《と》る。","lv":3},{"t":"返事《へんじ》を書《か》く前《まえ》に、次《つぎ》の予定《よてい》を決《き》める。","lv":3},{"t":"毎日《まいにち》の勉強《べんきょう》で、漢字《かんじ》の意味《いみ》を覚《おぼ》える。","lv":3},{"t":"学期《がっき》の終《お》わりに、式《しき》で発表《はっぴょう》をする。","lv":3},{"t":"炭《すみ》の火《ひ》で、緑《みどり》のお茶《ちゃ》をわかす。","lv":3},{"t":"交代《こうたい》しながら、重《おも》い箱《はこ》を運《はこ》ぶ。","lv":3},{"t":"実《み》が落《お》ちる音《おと》に、遊《あそ》んでいた童《わらべ》がふり返《かえ》る。","lv":3},{"t":"歯《は》をみがいてから、暑《あつ》い部屋《へや》の窓《まど》を開《ひら》ける。","lv":3},{"t":"生命《せいめい》の大切《たいせつ》さを、みんなで守《まも》る。","lv":3},{"t":"拾《ひろ》った品物《しなもの》を、駅《えき》の係員《かかりいん》に申《もう》し出《で》る。","lv":3},{"t":"福《ふく》の神《かみ》をまつる祭《まつ》りが、州《しゅう》ぜんたいに広《ひろ》がった。","lv":3},{"t":"悪《わる》い味《あじ》がしたので、飲《の》むのをやめた。","lv":3},{"t":"寒《さむ》い朝《あさ》、白《しろ》い息《いき》をはきながら丁目《ちょうめ》の角《かど》を曲《ま》がる。","lv":3},{"t":"今度《こんど》の日曜日《にちようび》に、屋上《おくじょう》から港《みなと》を見《み》る。","lv":3},{"t":"死《し》んだ虫《むし》を、庭《にわ》の土《つち》に軽《かる》くうめる。","lv":3},{"t":"役《やく》に立《た》つ道具《どうぐ》を、局《きょく》の人《ひと》に送《おく》る。","lv":3},{"t":"球《たま》を転《ころ》がして、平等《びょうどう》に分《わ》ける。","lv":3},{"t":"都《みやこ》の古《ふる》い館《やかた》に、番号《ばんごう》をつけた紙《かみ》をはる。","lv":3},{"t":"負《ま》けた相手《あいて》の手《て》を、しっかりにぎって放《はな》す。","lv":3},{"t":"太陽《たいよう》の光《ひかり》で、氷《こおり》が少《すこ》しずつ消《き》える。","lv":3},{"t":"強《つよ》く打《う》った球《たま》が、地面《じめん》に当《あ》たってはずむ。","lv":3},{"t":"音楽《おんがく》を聞《き》いて、心《こころ》に感《かん》じたことを話《はな》す。","lv":3},{"t":"近所《きんじょ》の広《ひろ》い場所《ばしょ》で、みんなと遊《あそ》ぶ。","lv":3},{"t":"英語《えいご》の辞書《じしょ》で、知《し》らない単語《たんご》の意味《いみ》を調《しら》べる。","lv":4},{"t":"給食《きゅうしょく》の野菜《やさい》には、栄養《えいよう》がたくさん入《はい》っている。","lv":4},{"t":"卒業《そつぎょう》する生徒《せいと》が、体育館《たいいくかん》で合唱《がっしょう》をした。","lv":4},{"t":"理科《りか》の実験《じっけん》の結果《けっか》を、記録《きろく》として残《のこ》す。","lv":4},{"t":"観光《かんこう》の案内《あんない》に、古《ふる》い城《しろ》の写真《しゃしん》がのっている。","lv":4},{"t":"協力《きょうりょく》して、機械《きかい》の位置《いち》を少《すこ》し低《ひく》くする。","lv":4},{"t":"順番《じゅんばん》を守《まも》って、席《せき》に着《つ》くように説明《せつめい》する。","lv":4},{"t":"毎朝《まいあさ》の散歩《さんぽ》を日課《にっか》にして、健康《けんこう》に気《き》をつける。","lv":4},{"t":"必要《ひつよう》な材料《ざいりょう》を、倉庫《そうこ》から運《はこ》び出《だ》す。","lv":4},{"t":"最後《さいご》まで努力《どりょく》を続《つづ》けて、競争《きょうそう》に成功《せいこう》した。","lv":4},{"t":"季節《きせつ》が変《か》わり、梅《うめ》の芽《め》がふくらむ。","lv":4},{"t":"牧場《ぼくじょう》で働《はたら》く人《ひと》が、群《む》れをつくる牛《うし》を数《かぞ》える。","lv":4},{"t":"飛《と》んできた鳥《とり》が、松《まつ》の木《き》の巣《す》に帰《かえ》る。","lv":4},{"t":"塩《しお》を加《くわ》えて、熱《あつ》いご飯《はん》をおいしく焼《や》く。","lv":4},{"t":"博物館《はくぶつかん》で、大陸《たいりく》の地図《ちず》を観察《かんさつ》した。","lv":4},{"t":"約束《やくそく》の時間《じかん》におくれて、友達《ともだち》に不安《ふあん》な顔《かお》をさせた。","lv":4},{"t":"目標《もくひょう》を紙《かみ》に書《か》いて、教室《きょうしつ》の側《がわ》のかべにはる。","lv":4},{"t":"司会《しかい》の人《ひと》が、氏名《しめい》を読《よ》み上《あ》げて投票《とうひょう》を始《はじ》める。","lv":4},{"t":"反省《はんせい》して、初《はじ》めから方法《ほうほう》を改《あらた》める。","lv":4},{"t":"試合《しあい》に負《ま》けた仲間《なかま》が、泣《な》きながら手《て》を挙《あ》げた。","lv":4},{"t":"勇気《ゆうき》を出《だ》して、希望《きぼう》を伝《つた》える。","lv":4},{"t":"灯台《とうだい》の光《ひかり》が、浅《あさ》い海《うみ》の底《そこ》まで照《て》らす。","lv":4},{"t":"漁船《ぎょせん》が、特別《とくべつ》に大《おお》きな種類《しゅるい》の魚《さかな》をつかまえた。","lv":4},{"t":"訓練《くんれん》を受《う》けた隊《たい》が、山《やま》の周《まわ》りを回《まわ》る。","lv":4},{"t":"冷《つめ》たい水《みず》を浴《あ》びてから、清《きよ》らかな川《かわ》に手《て》をひたす。","lv":4},{"t":"自然《しぜん》の中《なか》で、鏡《かがみ》のように静《しず》かな湖《みずうみ》を見《み》た。","lv":4},{"t":"印刷《いんさつ》した紙《かみ》を、順《じゅん》にならべて包《つつ》む。","lv":4},{"t":"国民《こくみん》の願《ねが》いを、大臣《だいじん》が会議《かいぎ》で説明《せつめい》する。","lv":4},{"t":"昨日《さくじつ》の天候《てんこう》について、各自《かくじ》が意見《いけん》を求《もと》める。","lv":4},{"t":"水道管《すいどうかん》が欠《か》けていたので、係《かかり》の人《ひと》が直《なお》した。","lv":4},{"t":"一億《いちおく》円《えん》の貨物《かもつ》を、車輪《しゃりん》の大《おお》きな車《くるま》で運《はこ》ぶ。","lv":4},{"t":"分量《ぶんりょう》を量《はか》って、食器《しょっき》に取《と》り分《わ》ける。","lv":4},{"t":"街《まち》の中央《ちゅうおう》に、目印《めじるし》になる高《たか》い建物《たてもの》を建《た》てる。","lv":4},{"t":"辞典《じてん》で調《しら》べた例《れい》を、目的《もくてき》に合《あ》わせて選《えら》ぶ。","lv":4},{"t":"祝《いわ》いの日《ひ》に、家族《かぞく》みんなで記念《きねん》の写真《しゃしん》をとる。","lv":4},{"t":"井戸《いど》のそばの旗《はた》が、風《かぜ》で折《お》れそうになった。","lv":4},{"t":"老人《ろうじん》が孫《まご》の手《て》を連《つ》れて、ゆっくり歩《ある》く。","lv":4},{"t":"失敗《しっぱい》しても、笑《わら》って次《つぎ》の課題《かだい》に向《む》かう。","lv":4},{"t":"軍《ぐん》の命令《めいれい》で、兵《へい》たちが戦《たたか》いをやめた。","lv":4},{"t":"面積《めんせき》と直径《ちょっけい》を計算《けいさん》して、答《こた》えを求《もと》める。","lv":4},{"t":"未来《みらい》の自分《じぶん》に、愛《あい》をこめて手紙《てがみ》を書《か》く。","lv":4},{"t":"札《ふだ》を借《か》りて、帯《おび》のように長《なが》い列《れつ》に加《くわ》わる。","lv":4},{"t":"便利《べんり》な道具《どうぐ》を、工夫《くふう》して作《つく》る。","lv":4},{"t":"週末《しゅうまつ》は、満員《まんいん》の電車《でんしゃ》をさけて出《で》かける。","lv":4},{"t":"外交官《がいこうかん》が、別《べつ》の国《くに》の児童《じどう》と写真《しゃしん》をとった。","lv":4},{"t":"固《かた》い土《つち》に種《たね》をまき、毎日《まいにち》水《みず》をやり続《つづ》ける。","lv":4},{"t":"無理《むり》をしないで、体《からだ》を治《なお》すことを第一《だいいち》に考《かんが》える。","lv":4},{"t":"労働《ろうどう》の後《あと》に、辺《あた》りの景色《けしき》をながめる。","lv":4},{"t":"芸《げい》を身《み》につけた犬《いぬ》が、好《す》きな人《ひと》の所《ところ》へ走《はし》る。","lv":4},{"t":"差《さ》がわずかで、勝《か》ち負《ま》けを決《き》めるのに時間《じかん》がかかった。","lv":4},{"t":"副《ふく》の会長《かいちょう》が、参加《さんか》する人《ひと》を数《かぞ》える。","lv":4},{"t":"衣服《いふく》についた害《がい》のある虫《むし》を、静《しず》かに取《と》りのぞく。","lv":4},{"t":"五年生《ごねんせい》以上《いじょう》の人《ひと》が、北極《ほっきょく》について発表《はっぴょう》する。","lv":4},{"t":"特産《とくさん》の米《こめ》を、県《けん》の外《そと》に売《う》り出《だ》す。","lv":4},{"t":"信《しん》じて待《ま》っていると、明《あか》るい兆《きざ》しが見《み》えてきた。","lv":4},{"t":"新潟《にいがた》と富山《とやま》を通《とお》って、石川《いしかわ》と福井《ふくい》へ向《む》かう。","lv":4},{"t":"茨城《いばらき》と栃木《とちぎ》と埼玉《さいたま》は、みんな関東《かんとう》地方《ちほう》だ。","lv":4},{"t":"岐阜《ぎふ》と静岡《しずおか》の間《あいだ》に、愛知《あいち》と三重《みえ》がある。","lv":4},{"t":"滋賀《しが》と大阪府《おおさかふ》と奈良《なら》を、電車《でんしゃ》で回《まわ》った。","lv":4},{"t":"兵庫《ひょうご》から、岡山《おかやま》と山梨《やまなし》の景色《けしき》を思《おも》い出《だ》す。","lv":4},{"t":"香川《かがわ》と愛媛《えひめ》と徳島《とくしま》は、四国《しこく》にある。","lv":4},{"t":"熊本《くまもと》と長崎《ながさき》と佐賀《さが》、そして鹿児島《かごしま》を旅《たび》した。","lv":4},{"t":"沖縄《おきなわ》の海《うみ》は、どこまでも深《ふか》く青《あお》い。","lv":4},{"t":"完全《かんぜん》に元《もと》どおりになるまで、共《とも》に力《ちから》を合《あ》わせる。","lv":4},{"t":"郡《ぐん》の名前《なまえ》を書《か》いた札《ふだ》を、門《もん》に付《つ》ける。","lv":4},{"t":"歴史《れきし》の授業《じゅぎょう》で、武士《ぶし》の生活《せいかつ》について質問《しつもん》した。","lv":5},{"t":"準備《じゅんび》した資料《しりょう》を、順序《じゅんじょ》よくならべて提出《ていしゅつ》する。","lv":5},{"t":"気圧《きあつ》が下《さ》がると、天気《てんき》が変《か》わる原因《げんいん》になる。","lv":5},{"t":"制服《せいふく》のよごれを落《お》として、清潔《せいけつ》にたもつ。","lv":5},{"t":"祖父《そふ》は、畑《はたけ》を耕《たがや》して肥料《ひりょう》をまく。","lv":5},{"t":"桜《さくら》の枝《えだ》に、小《ちい》さな鳥《とり》が二羽《にわ》とまっている。","lv":5},{"t":"国際《こくさい》会議《かいぎ》で、貿易《ぼうえき》の条件《じょうけん》について話《はな》し合《あ》う。","lv":5},{"t":"成績《せいせき》の平均《へいきん》を計算《けいさん》して、結果《けっか》を報告《ほうこく》する。","lv":5},{"t":"非常《ひじょう》の時《とき》にそなえて、災害《さいがい》の情報《じょうほう》を確《たし》かめる。","lv":5},{"t":"技術《ぎじゅつ》の進歩《しんぽ》で、製品《せいひん》の価格《かかく》が安《やす》くなった。","lv":5},{"t":"教師《きょうし》の指導《しどう》に応《おう》じて、基本《きほん》の練習《れんしゅう》を再《ふたた》び行《おこな》う。","lv":5},{"t":"日常《にちじょう》の習慣《しゅうかん》を見直《みなお》して、無理《むり》のない程度《ていど》に減《へ》らす。","lv":5},{"t":"組織《そしき》の責任《せきにん》者《しゃ》が、規則《きそく》を破《やぶ》った事件《じけん》を調《しら》べる。","lv":5},{"t":"検査《けんさ》の結果《けっか》、血液型《けつえきがた》が分《わ》かった。","lv":5},{"t":"校舎《こうしゃ》の建築《けんちく》に、たくさんの費用《ひよう》がかかった。","lv":5},{"t":"講堂《こうどう》に集《あつ》まった団体《だんたい》の人《ひと》に、感謝《かんしゃ》を述《の》べる。","lv":5},{"t":"往復《おうふく》の切符《きっぷ》を買《か》って、電車《でんしゃ》で現地《げんち》へ向《む》かう。","lv":5},{"t":"知識《ちしき》だけでなく、経験《けいけん》からも学《まな》ぶことがある。","lv":5},{"t":"証明《しょうめい》された事実《じじつ》を、順《じゅん》を追《お》って示《しめ》す。","lv":5},{"t":"政治《せいじ》の仕組《しく》みと、税金《ぜいきん》の使《つか》い道《みち》を学《まな》ぶ。","lv":5},{"t":"現在《げんざい》の状態《じょうたい》では、その計画《けいかく》は適《てき》さない。","lv":5},{"t":"夢《ゆめ》をあきらめずに、志《こころざし》をつらぬく。","lv":5},{"t":"迷《まよ》っている友《とも》を救《すく》うために、勇気《ゆうき》を出《だ》して声《こえ》をかける。","lv":5},{"t":"犯人《はんにん》らしい人物《じんぶつ》を、警察《けいさつ》が保護《ほご》した。","lv":5},{"t":"複雑《ふくざつ》な問題《もんだい》を、絵《え》を使《つか》って単《たん》じゅんに説明《せつめい》する。","lv":5},{"t":"豊《ゆた》かな自然《しぜん》を守《まも》るために、森《もり》の木《き》を植《う》える。","lv":5},{"t":"布《ぬの》をていねいに編《あ》んで、綿《わた》を中《なか》に入《い》れる。","lv":5},{"t":"留守《るす》の間《あいだ》に、弁当《べんとう》を貸《か》しておいた。","lv":5},{"t":"貯金《ちょきん》の金額《きんがく》を、通帳《つうちょう》で確《たし》かめる。","lv":5},{"t":"永《なが》い年月《ねんげつ》をかけて、山脈《さんみゃく》の形《かたち》が変《か》わった。","lv":5},{"t":"鉱物《こうぶつ》や金属《きんぞく》の性質《せいしつ》を、実験《じっけん》で比《くら》べる。","lv":5},{"t":"酸素《さんそ》がないと、ろうそくの火《ひ》は燃《も》えない。","lv":5},{"t":"液《えき》をよく混《ま》ぜてから、温度《おんど》を測《はか》る。","lv":5},{"t":"人工《じんこう》衛星《えいせい》が、地球《ちきゅう》の周囲《しゅうい》を回《まわ》る。","lv":5},{"t":"航海《こうかい》の間《あいだ》に、船長《せんちょう》が河口《かこう》の地図《ちず》を広《ひろ》げる。","lv":5},{"t":"禁止《きんし》されている場所《ばしょ》に入《はい》るのは、罪《つみ》になる。","lv":5},{"t":"個人《こじん》の財産《ざいさん》を、家族《かぞく》に預《あず》ける。","lv":5},{"t":"逆《ぎゃく》の立場《たちば》に立《た》って、相手《あいて》の気持《きも》ちを想像《そうぞう》する。","lv":5},{"t":"久《ひさ》しぶりに会《あ》った妻《つま》の母《はは》が、喜《よろこ》んで出《で》むかえた。","lv":5},{"t":"仮《かり》の答《こた》えを出《だ》してから、正《ただ》しいか判断《はんだん》する。","lv":5},{"t":"毒《どく》のある草《くさ》を、手《て》をふれずに採《と》る。","lv":5},{"t":"夫婦《ふうふ》で店《みせ》を営《いとな》み、利益《りえき》を得《え》る。","lv":5},{"t":"仏《ほとけ》の前《まえ》で、墓《はか》をきれいにそうじする。","lv":5},{"t":"寄《よ》り道《みち》をせずに帰《かえ》るという条件《じょうけん》を、快《こころよ》く受《う》け入《い》れる。","lv":5},{"t":"枝《えだ》の幹《みき》に近《ちか》いところに、鳥《とり》の巣《す》があった。","lv":5},{"t":"興味《きょうみ》のある職業《しょくぎょう》について、雑《ざつ》な考《かんが》えを整理《せいり》する。","lv":5},{"t":"輸出《ゆしゅつ》の内容《ないよう》を、表《ひょう》に省略《しょうりゃく》して書《か》く。","lv":5},{"t":"能力《のうりょく》の差《さ》に応《おう》じて、目標《もくひょう》を個人《こじん》ごとに設《もう》ける。","lv":5},{"t":"眼科《がんか》で、目《め》の中《なか》をていねいに検査《けんさ》してもらう。","lv":5},{"t":"世紀《せいき》をこえて残《のこ》る建物《たてもの》を、国《くに》が保《たも》つ。","lv":5},{"t":"力士《りきし》が、土《つち》のうえで勢《いきお》いよく構《かま》える。","lv":5},{"t":"授業《じゅぎょう》で習《なら》った俳句《はいく》の句《く》を、五《いつ》つ覚《おぼ》えた。","lv":5},{"t":"評判《ひょうばん》の店《みせ》で、粉《こな》をこねてパンを造《つく》る。","lv":5},{"t":"停止《ていし》している車《くるま》の前《まえ》を、注意《ちゅうい》して通《とお》る。","lv":5},{"t":"事故《じこ》を防《ふせ》ぐために、危《あぶ》ない場所《ばしょ》を張《は》り紙《がみ》で知《し》らせる。","lv":5},{"t":"毎日《まいにち》の努力《どりょく》を続《つづ》けることが、成功《せいこう》の基《もと》になる。","lv":5},{"t":"新旧《しんきゅう》の道具《どうぐ》を比《くら》べて、どちらが便利《べんり》か確《たし》かめる。","lv":5},{"t":"時間《じかん》が過《す》ぎるのを忘《わす》れて、夢中《むちゅう》で本《ほん》を読《よ》む。","lv":5},{"t":"居間《いま》の窓《まど》から、庭《にわ》の花《はな》が見《み》える。","lv":5},{"t":"独《ひと》りで悩《なや》まずに、周《まわ》りの人《ひと》に相談《そうだん》する。","lv":5},{"t":"移《うつ》り住《す》んだ土地《とち》で、新《あたら》しい生活《せいかつ》が始《はじ》まる。","lv":5},{"t":"限《かぎ》られた時間《じかん》の中《なか》で、余《あま》った材料《ざいりょう》を使《つか》い切《き》る。","lv":5},{"t":"断《ことわ》るときも、相手《あいて》を大切《たいせつ》にする。","lv":5},{"t":"現《あらわ》れた総合《そうごう》の点数《てんすう》に、みんなが賛成《さんせい》した。","lv":5},{"t":"易《やさ》しい言葉《ことば》で説明《せつめい》すると、内容《ないよう》が伝《つた》わりやすい。","lv":5},{"t":"飼《か》っている犬《いぬ》が、親《おや》と似《に》た顔《かお》になってきた。","lv":5},{"t":"声《こえ》を殺《ころ》して、静《しず》かに笑《わら》う。","lv":5},{"t":"修理《しゅうり》した機械《きかい》が、また動《うご》き出《だ》した。","lv":5},{"t":"金属《きんぞく》の像《ぞう》が、水《みず》の中《なか》で美《うつく》しく光《ひか》る。","lv":5},{"t":"週刊《しゅうかん》の本《ほん》が、今日《きょう》から出版《しゅっぱん》される。","lv":5},{"t":"国境《こっきょう》の川《かわ》を、船《ふね》でわたって旅《たび》を続《つづ》ける。","lv":5},{"t":"損《そん》をしても、約束《やくそく》は守《まも》るのが大事《だいじ》だ。","lv":5},{"t":"役者《やくしゃ》が、舞台《ぶたい》で悲《かな》しい役《やく》を演《えん》じる。","lv":5},{"t":"絶《た》えることのない水《みず》の音《おと》が、山《やま》にひびく。","lv":5},{"t":"保険《ほけん》に入《はい》っているか、会社《かいしゃ》に問《と》い合《あ》わせる。","lv":5},{"t":"統一《とういつ》された形《かたち》の制服《せいふく》を、生徒《せいと》が着《き》る。","lv":5},{"t":"厚《あつ》い雲《くも》が、太陽《たいよう》の光《ひかり》をさえぎる。","lv":5},{"t":"知《し》らないうちに、荷物《にもつ》の数《かず》が増《ふ》えていた。","lv":5},{"t":"銅《どう》のメダルを、大切《たいせつ》に持《も》ち帰《かえ》る。","lv":5},{"t":"規則《きそく》に従《したが》わない人《ひと》を、先生《せんせい》が許《ゆる》した。","lv":5},{"t":"貧《まず》しい時代《じだい》の暮《く》らしを、祖父《そふ》が語《かた》る。","lv":5},{"t":"義務《ぎむ》として、地域《ちいき》の仕事《しごと》を引《ひ》き受《う》ける。","lv":5},{"t":"能率《のうりつ》よく進《すす》めるために、役《やく》わりを分《わ》ける。","lv":5},{"t":"賞《しょう》を取《と》った作品《さくひん》に、強《つよ》い印象《いんしょう》を受《う》けた。","lv":5},{"t":"直接《ちょくせつ》会《あ》って、自分《じぶん》の口《くち》から伝《つた》える。","lv":5},{"t":"技《わざ》をみがいて、大会《たいかい》で一番《いちばん》になる。","lv":5},{"t":"古《ふる》い時代《じだい》の政治《せいじ》の仕方《しかた》を、歴史《れきし》の本《ほん》で学《まな》ぶ。","lv":5},{"t":"領土《りょうど》の広《ひろ》さを、地図《ちず》の上《うえ》で比《くら》べる。","lv":5},{"t":"設備《せつび》の整《ととの》った部屋《へや》で、実験《じっけん》を行《おこな》う。","lv":5},{"t":"可能《かのう》な方法《ほうほう》をすべて考《かんが》えて、問題《もんだい》を解《と》き明《あ》かす。","lv":5},{"t":"先生《せんせい》を家《いえ》に招《まね》いて、精一杯《せいいっぱい》もてなす。","lv":5},{"t":"支《ささ》えになる棒《ぼう》を立《た》てて、風《かぜ》で暴《あば》れる木《き》を守《まも》る。","lv":5},{"t":"新《あたら》しい薬《くすり》の効果《こうか》を、実験《じっけん》で確《たし》かめる。","lv":5},{"t":"精神《せいしん》を集中《しゅうちゅう》して、最後《さいご》の一問《いちもん》に取《と》り組《く》む。","lv":5},{"t":"宇宙《うちゅう》から見《み》た地球《ちきゅう》の姿《すがた》に、胸《むね》がふるえた。","lv":6},{"t":"映画《えいが》の音楽《おんがく》を、楽団《がくだん》が演奏《えんそう》する。","lv":6},{"t":"憲法《けんぽう》によって、国民《こくみん》の権利《けんり》が守《まも》られている。","lv":6},{"t":"簡単《かんたん》に見《み》えることほど、実《じつ》は難《むずか》しい。","lv":6},{"t":"机《つくえ》の上《うえ》に、雑誌《ざっし》を一冊《いっさつ》置《お》いた。","lv":6},{"t":"警察《けいさつ》の署名《しょめい》入《い》りの書類《しょるい》が、郵便《ゆうびん》で届《とど》いた。","lv":6},{"t":"牛乳《ぎゅうにゅう》と砂糖《さとう》を、少《すこ》しずつ加《くわ》えて混《ま》ぜる。","lv":6},{"t":"私《わたし》の故郷《こきょう》は、海《うみ》に沿《そ》った小《ちい》さな町《まち》だ。","lv":6},{"t":"翌日《よくじつ》の朝《あさ》、頂上《ちょうじょう》から見《み》た景色《けしき》は忘《わす》れられない。","lv":6},{"t":"胃腸《いちょう》の調子《ちょうし》が悪《わる》いので、消化《しょうか》によい物《もの》を食《た》べる。","lv":6},{"t":"筋肉《きんにく》を痛《いた》めないように、体操《たいそう》をしてから走《はし》る。","lv":6},{"t":"将来《しょうらい》の夢《ゆめ》について、班《はん》ごとに話《はな》し合《あ》った。","lv":6},{"t":"展覧会《てんらんかい》で、若《わか》い画家《がか》の作品《さくひん》に感激《かんげき》する。","lv":6},{"t":"秘密《ひみつ》を打《う》ち明《あ》けられて、誠実《せいじつ》に答《こた》えた。","lv":6},{"t":"政党《せいとう》の政策《せいさく》について、議論《ぎろん》が激《はげ》しくなる。","lv":6},{"t":"裁判《さいばん》で、事実《じじつ》を否定《ひてい》せずに認《みと》める。","lv":6},{"t":"温泉《おんせん》に入《はい》って、背中《せなか》と腹《はら》の力《ちから》をぬく。","lv":6},{"t":"灰色《はいいろ》の雲《くも》から、冷《つめ》たい雨《あめ》が降《ふ》ってきた。","lv":6},{"t":"資源《しげん》を大切《たいせつ》に使《つか》い、ごみを捨《す》てないようにする。","lv":6},{"t":"天皇《てんのう》と皇后《こうごう》が、地域《ちいき》の人々《ひとびと》を訪《たず》ねた。","lv":6},{"t":"磁石《じしゃく》を近《ちか》づけると、針《はり》の向《む》きが変《か》わる。","lv":6},{"t":"経済《けいざい》の発展《はってん》とともに、人々《ひとびと》の暮《く》らしも変化《へんか》した。","lv":6},{"t":"専門《せんもん》の医者《いしゃ》に、注射《ちゅうしゃ》をしてもらう。","lv":6},{"t":"故障《こしょう》した機械《きかい》を、担当《たんとう》の人《ひと》が修理《しゅうり》する。","lv":6},{"t":"穀物《こくもつ》を俵《たわら》に入《い》れて、蔵《くら》に収《おさ》める。","lv":6},{"t":"蒸気《じょうき》の力《ちから》で動《うご》く汽車《きしゃ》が、鉄鋼《てっこう》を運《はこ》んだ。","lv":6},{"t":"紅茶《こうちゃ》に卵《たまご》のケーキをそえて、客《きゃく》をもてなす。","lv":6},{"t":"劇《げき》の幕《まく》が上《あ》がると、大衆《たいしゅう》から拍手《はくしゅ》がおきた。","lv":6},{"t":"値段《ねだん》の高《たか》い宝《たから》より、祖父《そふ》の残《のこ》した手紙《てがみ》が貴重《きちょう》だ。","lv":6},{"t":"世界《せかい》の遺産《いさん》として、古《ふる》い建物《たてもの》を守《まも》り続《つづ》ける。","lv":6},{"t":"砂《すな》の上《うえ》に座《すわ》って、潮《しお》のかおりを吸《す》いこむ。","lv":6},{"t":"片方《かたほう》の穴《あな》をふさいで、空気《くうき》の流《なが》れを調《しら》べる。","lv":6},{"t":"縦《たて》に並《なら》んだ列《れつ》が、前《まえ》から順《じゅん》に閉《し》じた門《もん》を通《とお》る。","lv":6},{"t":"厳《きび》しい訓練《くんれん》にたえた選手《せんしゅ》が、聖火《せいか》をかかげる。","lv":6},{"t":"拡大《かくだい》した写真《しゃしん》で、模様《もよう》の細《こま》かいちがいを確《たし》かめる。","lv":6},{"t":"自己《じこ》の誤《あやま》りを認《みと》めて、批判《ひはん》を素直《すなお》に受《う》け入《い》れる。","lv":6},{"t":"宗教《しゅうきょう》によって、拝《おが》む場所《ばしょ》や作法《さほう》がちがう。","lv":6},{"t":"革《かわ》の表面《ひょうめん》に、絹《きぬ》の糸《いと》で模様《もよう》を刻《きざ》む。","lv":6},{"t":"就職《しゅうしょく》した会社《かいしゃ》で、誕生日《たんじょうび》を祝《いわ》ってもらった。","lv":6},{"t":"法律《ほうりつ》に従《したが》って、県庁《けんちょう》に書類《しょるい》を納《おさ》める。","lv":6},{"t":"朗読《ろうどく》の会《かい》で、歌詞《かし》のような美《うつく》しい詞《ことば》を聞《き》いた。","lv":6},{"t":"推理《すいり》をはたらかせて、犯人《はんにん》の落《お》とした券《けん》を探《さが》す。","lv":6},{"t":"暖《あたた》かい部屋《へや》で、幼《おさな》い子供《こども》が絵《え》をかいている。","lv":6},{"t":"株《かぶ》のそばに垂《た》れた枝《えだ》を、はさみで除《のぞ》く。","lv":6},{"t":"蚕《かいこ》を育《そだ》てて、絹《きぬ》の糸《いと》をとる仕事《しごと》を学《まな》ぶ。","lv":6},{"t":"干《ほ》した洗《あら》いものを、夕方《ゆうがた》までに取《と》りこむ。","lv":6},{"t":"異《こと》なる意見《いけん》を持《も》つ人《ひと》を、尊敬《そんけい》する心《こころ》を忘《わす》れない。","lv":6},{"t":"地層《ちそう》を調《しら》べると、遠《とお》い昔《むかし》の地球《ちきゅう》の様子《ようす》が分《わ》かる。","lv":6},{"t":"簡単《かんたん》な処理《しょり》をすませてから、装置《そうち》の電源《でんげん》を切《き》る。","lv":6},{"t":"臨時《りんじ》の看板《かんばん》を、駅《えき》の裏《うら》に立《た》てる。","lv":6},{"t":"太陽系《たいようけい》には、地球《ちきゅう》をふくむ八《やっ》つの星《ほし》がある。","lv":6},{"t":"善《ぜん》と悪《あく》について、諸国《しょこく》の物語《ものがたり》を読《よ》み比《くら》べる。","lv":6},{"t":"内閣《ないかく》が、新《あたら》しい方針《ほうしん》を宣言《せんげん》した。","lv":6},{"t":"指揮《しき》をする人《ひと》の手《て》に合《あ》わせて、全員《ぜんいん》が息《いき》を合《あ》わせる。","lv":6},{"t":"一枚《いちまい》の紙《かみ》を四《よっ》つに割《わ》って、番号《ばんごう》をふる。","lv":6},{"t":"骨《ほね》と肺《はい》と心臓《しんぞう》のはたらきを、図《ず》で説明《せつめい》する。","lv":6},{"t":"疑《うたが》いが晴《は》れて、興奮《こうふん》した気持《きも》ちが落《お》ち着《つ》いた。","lv":6},{"t":"困《こま》っている人《ひと》に、自分《じぶん》のできることで恩《おん》を返《かえ》す。","lv":6},{"t":"巻《ま》いた布《ぬの》を、赤《あか》く染《そ》めてかわかす。","lv":6},{"t":"晩《ばん》になると、亡《な》くなった祖母《そぼ》の歌《うた》を思《おも》い出《だ》す。","lv":6},{"t":"樹木《じゅもく》に囲《かこ》まれた道《みち》を、我《われ》を忘《わす》れて歩《ある》く。","lv":6},{"t":"優《やさ》しい言葉《ことば》が、傷《きず》ついた心《こころ》を救《すく》う。","lv":6},{"t":"頭脳《ずのう》を使《つか》って、複雑《ふくざつ》な問題《もんだい》を単純《たんじゅん》にする。","lv":6},{"t":"家賃《やちん》を毎月《まいつき》はらって、自宅《じたく》から学校《がっこう》へ通《かよ》う。","lv":6},{"t":"延《の》びた時間《じかん》を、みんなで話《はな》し合《あ》って決《き》める。","lv":6},{"t":"親孝行《おやこうこう》をしようと、承知《しょうち》のうえで仕事《しごと》を引《ひ》き受《う》ける。","lv":6},{"t":"乱《みだ》れた列《れつ》を、係《かかり》の人《ひと》が並《なら》び直《なお》させる。","lv":6},{"t":"盛《さか》んに手《て》をふって、船《ふね》を見送《みおく》る。","lv":6},{"t":"寸法《すんぽう》を測《はか》って、棒《ぼう》を短《みじか》く切《き》る。","lv":6},{"t":"供《そな》えた花《はな》の前《まえ》で、静《しず》かに手《て》を合《あ》わせる。","lv":6},{"t":"同盟《どうめい》を結《むす》んだ国《くに》に、敵《てき》の動《うご》きを伝《つた》える。","lv":6},{"t":"視力《しりょく》を守《まも》るために、暗《くら》い所《ところ》で本《ほん》を読《よ》まない。","lv":6},{"t":"銭湯《せんとう》の湯《ゆ》につかって、一日《いちにち》のつかれをとる。","lv":6},{"t":"創作《そうさく》した物語《ものがたり》の著者《ちょしゃ》として、名前《なまえ》を書《か》く。","lv":6},{"t":"至《いた》るところに、幼《おさな》い子《こ》の笑《わら》い声《ごえ》がひびく。","lv":6},{"t":"勤《つと》めている会社《かいしゃ》で、来年《らいねん》の計画《けいかく》を検討《けんとう》する。","lv":6},{"t":"熟語《じゅくご》の意味《いみ》を、辞典《じてん》で一《ひと》つずつ調《しら》べる。","lv":6},{"t":"存在《そんざい》しない物《もの》を、想像《そうぞう》して絵《え》にかく。","lv":6},{"t":"派手《はで》な服《ふく》より、落《お》ち着《つ》いた色《いろ》の服《ふく》を選《えら》ぶ。","lv":6},{"t":"退《しりぞ》く時《とき》を見《み》きわめるのも、大切《たいせつ》な力《ちから》だ。","lv":6},{"t":"舌《した》の先《さき》で、砂糖《さとう》のあまさを感《かん》じる。","lv":6},{"t":"尺《しゃく》という古《ふる》い単位《たんい》で、長《なが》さを表《あらわ》す。","lv":6},{"t":"忠実《ちゅうじつ》に役目《やくめ》を果《は》たして、周《まわ》りの信用《しんよう》を得《え》る。","lv":6},{"t":"欲《ほ》しい物《もの》を、予算《よさん》の中《なか》で選《えら》ぶ。","lv":6},{"t":"補《おぎな》う言葉《ことば》を入《い》れて、文《ぶん》を完成《かんせい》させる。","lv":6},{"t":"毛糸《けいと》で編《あ》んだ服《ふく》が、洗《あら》うと縮《ちぢ》んでしまった。","lv":6},{"t":"通訳《つうやく》の人《ひと》が、外国《がいこく》の言葉《ことば》を日本語《にほんご》に訳《やく》す。","lv":6},{"t":"預《あず》けた荷物《にもつ》を、番号《ばんごう》の札《ふだ》を見《み》せて受《う》け取《と》る。","lv":6},{"t":"仁《じん》の心《こころ》を大切《たいせつ》にして、人《ひと》に接《せっ》する。","lv":6},{"t":"名前《なまえ》を呼《よ》ばれたら、大《おお》きな声《こえ》で返事《へんじ》をする。","lv":6},{"t":"陛下《へいか》のお言葉《ことば》を、多《おお》くの人《ひと》が静《しず》かに聞《き》いた。","lv":6}]};
+</script>
+<script>
+(function(){
+"use strict";
+const D = window.KANJI_DATA, K = D.kanji;
+const SEG = /([一-鿿々]+)《([ぁ-ゟー]+)》/g;
+const GRADE_LABEL = ["","一年","二年","三年","四年","五年","六年"];
+const SETTINGS_KEY = "kanji-drill-settings-v1";
+const QUIZ_LEN = 10;
+
+/* ---------- 下ごしらえ ---------- */
+function gradeOf(ch){ const e = K[ch]; return e ? e.g : 99; }
+function wordGrade(w){ let g = 0; for (const c of w) g = Math.max(g, gradeOf(c)); return g; }
+
+function parse(t){
+  const out = []; let last = 0, m;
+  SEG.lastIndex = 0;
+  while ((m = SEG.exec(t))){
+    if (m.index > last) out.push({kana:t.slice(last, m.index)});
+    out.push({k:m[1], r:m[2], g:wordGrade(m[1])});
+    last = SEG.lastIndex;
+  }
+  if (last < t.length) out.push({kana:t.slice(last)});
+  return out;
+}
+const SENT = D.sentences.map(s => {
+  const segs = parse(s.t);
+  return {segs, above:{}, words:segs.filter(x => x.k)};
+});
+// 学年ごとの「ルビが必要な語の割合」を先に出しておく（やさしい文から出すため）
+SENT.forEach(s => {
+  for (let g = 1; g <= 6; g++){
+    let over = 0;
+    s.words.forEach(w => { if (w.g > g) over++; });
+    s.above[g] = over / s.words.length;
+  }
+});
+
+// 本文に実際に出てくる一字語の読み（表外の訓を出題しないため）
+const CORPUS_KUN = {};
+SENT.forEach(s => s.words.forEach(w => {
+  if (w.k.length === 1){ (CORPUS_KUN[w.k] = CORPUS_KUN[w.k] || new Set()).add(w.r); }
+}));
+
+const BY_GRADE = {1:[],2:[],3:[],4:[],5:[],6:[]};
+Object.keys(K).forEach(c => BY_GRADE[K[c].g].push(c));
+
+/* ---------- 状態 ---------- */
+const state = {grade:1, mode:"sentence", input:"choice", scope:"exact", furi:"over", theme:"auto",
+               phase:"setup", queue:[], at:0, results:[], answered:null};
+const HOST_THEME = document.documentElement.getAttribute("data-theme");
+function applyTheme(){
+  const root = document.documentElement;
+  if (state.theme === "auto"){
+    if (HOST_THEME) root.setAttribute("data-theme", HOST_THEME); else root.removeAttribute("data-theme");
+  }else root.setAttribute("data-theme", state.theme);
+}
+try{
+  const saved = JSON.parse(localStorage.getItem(SETTINGS_KEY) || "null");
+  if (saved) ["grade","mode","input","scope","furi","theme"].forEach(k => { if (saved[k]) state[k] = saved[k]; });
+}catch(e){}
+function save(){
+  try{ localStorage.setItem(SETTINGS_KEY, JSON.stringify(
+    {grade:state.grade, mode:state.mode, input:state.input, scope:state.scope, furi:state.furi,
+     theme:state.theme})); }catch(e){}
+}
+
+/* ---------- 道具 ---------- */
+const shuffle = a => { for (let i = a.length-1; i > 0; i--){ const j = (Math.random()*(i+1))|0; [a[i],a[j]] = [a[j],a[i]]; } return a; };
+const pick = a => a[(Math.random()*a.length)|0];
+const KATA_TO_HIRA = s => s.replace(/[ァ-ヶ]/g, c => String.fromCharCode(c.charCodeAt(0)-0x60));
+const normalize = s => KATA_TO_HIRA(String(s||"")).trim().replace(/[\s　ー~]/g,"");
+
+function gradesInScope(){
+  return state.scope === "upto" ? [1,2,3,4,5,6].filter(g => g <= state.grade) : [state.grade];
+}
+function distractors(answer, pool, exclude, n){
+  const bad = new Set([answer, ...(exclude||[])]);
+  const same = shuffle(pool.filter(r => !bad.has(r) && r.length === answer.length));
+  const near = shuffle(pool.filter(r => !bad.has(r) && Math.abs(r.length - answer.length) === 1));
+  const rest = shuffle(pool.filter(r => !bad.has(r)));
+  const out = [];
+  for (const r of [...same, ...near, ...rest]){ if (out.indexOf(r) < 0) out.push(r); if (out.length === n) break; }
+  return out;
+}
+
+/* ---------- 出題づくり ---------- */
+function buildSentenceQuiz(n){
+  const gs = gradesInScope(), gset = new Set(gs), g = state.grade;
+  const cands = [];
+  SENT.forEach((s, si) => s.segs.forEach((w, wi) => {
+    if (w.k && gset.has(w.g)) cands.push({si, wi, ease:s.above[g], short:w.r.length < 2 ? 1 : 0});
+  }));
+  if (!cands.length) return [];
+  shuffle(cands);
+  // 読みが1モーラの語は当てずっぽうになりやすいので後回し、次にルビの少ない文を優先
+  cands.sort((a,b) => (a.short - b.short) || (a.ease - b.ease));
+  const head = cands.slice(0, Math.max(n*4, 40));
+  const chosen = [], usedWord = new Set(), usedSent = new Set();
+  for (const c of shuffle(head)){
+    const w = SENT[c.si].segs[c.wi];
+    if (usedWord.has(w.k) || usedSent.has(c.si)) continue;
+    usedWord.add(w.k); usedSent.add(c.si); chosen.push(c);
+    if (chosen.length === n) break;
+  }
+  for (const c of shuffle(cands)){                  // 足りなければ条件をゆるめる
+    if (chosen.length >= n) break;
+    if (chosen.some(x => x.si === c.si && x.wi === c.wi)) continue;
+    chosen.push(c);
+  }
+  const pool = [];
+  cands.forEach(c => pool.push(SENT[c.si].segs[c.wi].r));
+  return chosen.slice(0, n).map(c => {
+    const s = SENT[c.si], w = s.segs[c.wi];
+    return {kind:"sentence", si:c.si, wi:c.wi, word:w.k, answer:w.r,
+            accept:[w.r], choices:shuffle([w.r, ...distractors(w.r, pool, [], 3)])};
+  });
+}
+
+function kanjiQuestion(c){
+  const info = K[c], opts = [];
+  if (info.on.length) opts.push({type:"on", disp:c, okuri:"", answer:info.on[0],
+                                 accept:info.on.slice()});
+  const used = CORPUS_KUN[c];
+  if (used){
+    info.kun.forEach(k => {
+      const dot = k.indexOf(".");
+      const stem = dot < 0 ? k : k.slice(0, dot);
+      const okuri = dot < 0 ? "" : k.slice(dot+1);
+      if (!used.has(stem)) return;
+      opts.push({type:"kun", disp:c, okuri, answer:stem+okuri, accept:[stem+okuri, stem]});
+    });
+  }
+  if (!opts.length && info.kun.length){
+    const k = info.kun[0], dot = k.indexOf("."), stem = dot < 0 ? k : k.slice(0, dot);
+    const okuri = dot < 0 ? "" : k.slice(dot+1);
+    opts.push({type:"kun", disp:c, okuri, answer:stem+okuri, accept:[stem+okuri, stem]});
+  }
+  if (!opts.length) return null;
+  const onOpts = opts.filter(o => o.type === "on"), kunOpts = opts.filter(o => o.type === "kun");
+  const q = (onOpts.length && kunOpts.length) ? (Math.random() < .5 ? pick(onOpts) : pick(kunOpts))
+                                              : pick(opts);
+  q.char = c;
+  return q;
+}
+function buildSingleQuiz(n){
+  const chars = [];
+  gradesInScope().forEach(g => chars.push(...BY_GRADE[g]));
+  const qs = [];
+  for (const c of shuffle(chars)){
+    const q = kanjiQuestion(c);
+    if (q) qs.push(q);
+    if (qs.length === n) break;
+  }
+  const poolOn = [], poolKun = [];
+  chars.forEach(c => {
+    K[c].on.forEach(r => poolOn.push(r));
+    if (!CORPUS_KUN[c]) return;
+    K[c].kun.forEach(k => {
+      const dot = k.indexOf("."), stem = dot < 0 ? k : k.slice(0, dot);
+      if (CORPUS_KUN[c].has(stem)) poolKun.push(dot < 0 ? stem : stem + k.slice(dot+1));
+    });
+  });
+  return qs.map(q => {
+    const own = K[q.char].on.concat(K[q.char].kun.map(k => k.replace(".", "")),
+                                    K[q.char].kun.map(k => k.split(".")[0]));
+    let pool = poolOn;
+    if (q.type === "kun"){
+      const sameOkuri = poolKun.filter(r => q.okuri ? r.endsWith(q.okuri) : true);
+      pool = sameOkuri.length >= 8 ? sameOkuri : poolKun;
+    }
+    return {kind:"single", char:q.char, type:q.type, okuri:q.okuri, word:q.disp+q.okuri,
+            answer:q.answer, accept:q.accept,
+            choices:shuffle([q.answer, ...distractors(q.answer, pool, own, 3)])};
+  });
+}
+
+function newQuiz(){
+  state.phase = "quiz";
+  state.queue = state.mode === "sentence" ? buildSentenceQuiz(QUIZ_LEN) : buildSingleQuiz(QUIZ_LEN);
+  state.at = 0; state.results = []; state.answered = null;
+  render();
+}
+
+/* ---------- 描画 ---------- */
+const $ = id => document.getElementById(id);
+const el = (tag, cls, txt) => { const e = document.createElement(tag); if (cls) e.className = cls;
+  if (txt != null) e.textContent = txt; return e; };
+
+function rubyNode(word, reading){
+  const r = document.createElement("ruby");
+  r.appendChild(document.createTextNode(word));
+  const rt = document.createElement("rt"); rt.textContent = reading;
+  r.appendChild(rt);
+  return r;
+}
+function renderSentence(si, wi, revealed){
+  const p = el("p", "sentence");
+  SENT[si].segs.forEach((seg, i) => {
+    if (seg.kana){ p.appendChild(document.createTextNode(seg.kana)); return; }
+    if (i === wi){
+      const span = el("span", "target" + (revealed ? " done" : ""));
+      if (revealed) span.appendChild(rubyNode(seg.k, seg.r));
+      else span.textContent = seg.k;
+      p.appendChild(span);
+      return;
+    }
+    const needs = state.furi === "all" ? true : state.furi === "none" ? false : seg.g > state.grade;
+    p.appendChild(needs ? rubyNode(seg.k, seg.r) : document.createTextNode(seg.k));
+  });
+  return p;
+}
+
+function rubyText(parts){
+  const frag = document.createDocumentFragment();
+  parts.forEach(p => frag.appendChild(Array.isArray(p) ? rubyNode(p[0], p[1]) : document.createTextNode(p)));
+  return frag;
+}
+function askChip(parts){
+  const d = el("div", "ask"); d.appendChild(rubyText(parts)); return d;
+}
+function readingList(c){
+  const info = K[c], box = el("div", "readings");
+  if (info.on.length){
+    const s = el("span"); const i = el("i"); i.appendChild(rubyNode("音","おん")); s.appendChild(i);
+    const b = el("b", null, info.on.slice(0,3).join("・")); s.appendChild(b); box.appendChild(s);
+  }
+  if (info.kun.length){
+    const s = el("span"); const i = el("i"); i.appendChild(rubyNode("訓","くん")); s.appendChild(i);
+    const b = el("b", null, info.kun.slice(0,4).map(k => k.replace(".", "")).join("・"));
+    s.appendChild(b); box.appendChild(s);
+  }
+  return box;
+}
+
+function render(){
+  // 学年タブ
+  const nav = $("grades"); nav.textContent = "";
+  for (let g = 1; g <= 6; g++){
+    const b = el("button", "grade");
+    b.setAttribute("aria-pressed", String(g === state.grade));
+    b.appendChild(document.createTextNode(GRADE_LABEL[g]));
+    b.appendChild(el("small", null, BY_GRADE[g].length + "字"));
+    b.onclick = () => { state.grade = g; save(); render(); };
+    nav.appendChild(b);
+  }
+  // 設定
+  [["mode","mode"],["input","input"],["scope","scope"],["furi","furi"],["theme","theme"]].forEach(([id, key]) => {
+    Array.from($(id).children).forEach(b => {
+      b.setAttribute("aria-pressed", String(b.dataset.v === state[key]));
+      b.onclick = () => {
+        state[key] = b.dataset.v; save();
+        if (key === "theme") applyTheme();
+        render();
+      };
+    });
+  });
+  $("start").onclick = () => { state.phase = "quiz"; newQuiz(); };
+
+  // 画面の出しわけ
+  const inQuiz = state.phase === "quiz";
+  $("setup").hidden = inQuiz;
+  $("quizbar").hidden = !inQuiz;
+  $("progress").hidden = !inQuiz;
+  if (inQuiz) renderQuizBar();
+  // 集計表示
+  const gs = gradesInScope();
+  const chars = gs.reduce((n, g) => n + BY_GRADE[g].length, 0);
+  $("counts").innerHTML = "出題範囲 <b>" + chars + "</b> 字 ／ 短文 <b>" + SENT.length + "</b> 本";
+
+  // 進捗
+  const dots = $("dots"); dots.textContent = "";
+  for (let i = 0; i < state.queue.length; i++){
+    const d = el("div", "dot" + (state.results[i] === true ? " ok" : state.results[i] === false ? " ng"
+                : i === state.at ? " now" : ""));
+    dots.appendChild(d);
+  }
+  const ok = state.results.filter(Boolean).length;
+  $("tally").textContent = state.at >= state.queue.length && state.queue.length
+    ? "終了" : (state.at + 1) + " / " + state.queue.length + "　正解 " + ok;
+
+  const stage = $("stage"); stage.textContent = "";
+  if (!inQuiz){ stage.appendChild(previewCard()); return; }
+  if (!state.queue.length){ stage.appendChild(el("div", "card", "この条件で出せる問題がありません。")); return; }
+  if (state.at >= state.queue.length){ stage.appendChild(resultCard()); return; }
+  stage.appendChild(questionCard());
+}
+
+function renderQuizBar(){
+  const bar = $("quizbar"); bar.textContent = "";
+  const who = el("div", "who");
+  who.appendChild(el("b", null, GRADE_LABEL[state.grade] + (state.scope === "upto" ? "まで" : "")));
+  who.appendChild(document.createTextNode("　" + (state.mode === "sentence" ? "短文の読み" : "漢字ひとつ")
+    + "　" + (state.input === "choice" ? "4つからえらぶ" : "入力する")));
+  bar.appendChild(who);
+  if (state.mode === "sentence"){
+    const field = el("label", "field");
+    field.appendChild(el("span", null, "ふりがな"));
+    const seg = el("div", "seg mini");
+    [["over","上の学年だけ"],["all","ぜんぶ"],["none","なし"]].forEach(([v, label]) => {
+      const b = el("button", null, label);
+      b.setAttribute("aria-pressed", String(state.furi === v));
+      b.onclick = () => { state.furi = v; save(); render(); };
+      seg.appendChild(b);
+    });
+    field.appendChild(seg); bar.appendChild(field);
+  }
+  const back = el("button", "ghost", "設定にもどる");
+  back.onclick = () => { state.phase = "setup"; state.answered = null; render(); };
+  bar.appendChild(back);
+}
+
+function previewCard(){
+  const card = el("div", "card preview");
+  card.appendChild(el("div", "cap", "こんなふうに出ます"));
+  if (state.mode === "sentence"){
+    const gset = new Set(gradesInScope());
+    let best = null;
+    SENT.forEach((s, si) => s.segs.forEach((w, wi) => {
+      if (!w.k || !gset.has(w.g) || w.r.length < 2) return;
+      if (!best || s.above[state.grade] < best.score) best = {si, wi, score:s.above[state.grade]};
+    }));
+    if (best) card.appendChild(renderSentence(best.si, best.wi, true));
+    const note = el("p", "note");
+    note.appendChild(document.createTextNode("線を引いた語の読みを答えます。"));
+    if (state.furi === "over" && state.grade < 6){
+      note.appendChild(document.createElement("br"));
+      note.appendChild(document.createTextNode("ほかの漢字はそのまま漢字で出し、"));
+      const em = el("em", null, GRADE_LABEL[state.grade] + "より上の学年の漢字");
+      note.appendChild(em);
+      note.appendChild(document.createTextNode("にだけふりがなをつけます。"));
+    }else if (state.furi === "all"){
+      note.appendChild(document.createElement("br"));
+      note.appendChild(document.createTextNode("出題語いがいのすべての漢字にふりがなをつけます。"));
+    }else if (state.furi === "none"){
+      note.appendChild(document.createElement("br"));
+      note.appendChild(document.createTextNode("ふりがなはつけません。"));
+    }
+    card.appendChild(note);
+  }else{
+    const chars = [];
+    gradesInScope().forEach(g => chars.push(...BY_GRADE[g]));
+    const q = kanjiQuestion(chars[0]);
+    const row = el("div", "box-row"), box = el("div", "box");
+    box.appendChild(el("span", null, q ? q.char : "漢"));
+    row.appendChild(box);
+    if (q && q.okuri) row.appendChild(el("div", "okuri", q.okuri));
+    card.appendChild(row);
+    const note = el("p", "note");
+    note.appendChild(document.createTextNode("この学年の漢字を1字ずつ出します。"));
+    note.appendChild(document.createElement("br"));
+    note.appendChild(rubyText([["音読","おんよ"],"み・",["訓読","くんよ"],"みのどちらを答えるかは、問題ごとに出ます。"]));
+    card.appendChild(note);
+  }
+  return card;
+}
+
+function questionCard(){
+  const q = state.queue[state.at], done = state.answered !== null;
+  const card = el("div", "card");
+
+  if (q.kind === "sentence"){
+    card.appendChild(askChip([["赤","あか"],"い",["線","せん"],"の",["読","よ"],"み",["方","かた"],"は？"]));
+    card.appendChild(renderSentence(q.si, q.wi, done));
+  }else{
+    card.appendChild(askChip(q.type === "on"
+      ? [["音読","おんよ"],"みを",["答","こた"],"えよう"] : [["訓読","くんよ"],"みを",["答","こた"],"えよう"]));
+    const row = el("div", "box-row"), box = el("div", "box");
+    box.appendChild(el("span", null, q.char));
+    row.appendChild(box);
+    if (q.okuri) row.appendChild(el("div", "okuri", q.okuri));
+    card.appendChild(row);
+  }
+
+  if (!done){
+    if (state.input === "choice"){
+      const wrap = el("div", "choices");
+      q.choices.forEach((c, i) => {
+        const b = el("button", "choice");
+        b.appendChild(el("kbd", null, String(i+1)));
+        b.appendChild(document.createTextNode(c));
+        b.onclick = () => answer(c);
+        wrap.appendChild(b);
+      });
+      card.appendChild(wrap);
+    }else{
+      const row = el("div", "answer-row");
+      const inp = document.createElement("input");
+      inp.type = "text"; inp.placeholder = "ひらがなで入力"; inp.autocomplete = "off"; inp.id = "typed";
+      inp.setAttribute("autocapitalize", "off"); inp.setAttribute("autocorrect", "off");
+      inp.setAttribute("spellcheck", "false"); inp.setAttribute("enterkeyhint", "done");
+      inp.onfocus = () => setTimeout(() => {
+        const c = document.querySelector(".card");
+        if (c && c.scrollIntoView) c.scrollIntoView({block:"start", behavior:"smooth"});
+      }, 250);
+      inp.onkeydown = e => { if (e.key === "Enter"){ e.preventDefault(); answer(inp.value); } };
+      const btn = el("button", "primary", "こたえる");
+      btn.onclick = () => answer(inp.value);
+      row.appendChild(inp); row.appendChild(btn);
+      card.appendChild(row);
+      setTimeout(() => inp.focus(), 0);
+    }
+  }else{
+    if (state.input === "choice"){
+      const wrap = el("div", "choices");
+      q.choices.forEach((c, i) => {
+        const b = el("button", "choice");
+        b.disabled = true;
+        if (c === q.answer) b.classList.add("correct");
+        else if (c === state.answered) b.classList.add("wrong");
+        b.appendChild(el("kbd", null, String(i+1)));
+        b.appendChild(document.createTextNode(c));
+        wrap.appendChild(b);
+      });
+      card.appendChild(wrap);
+    }
+    const v = el("div", "verdict");
+    const good = state.results[state.at];
+    v.appendChild(el("div", "mark " + (good ? "ok" : "ng"), good ? "○ せいかい" : "× ざんねん"));
+    if (!good){
+      const said = el("div", "said");
+      said.appendChild(document.createTextNode("正しい読みは "));
+      said.appendChild(el("b", null, q.answer));
+      if (state.input === "type" && state.answered)
+        said.appendChild(document.createTextNode("（入力：" + state.answered + "）"));
+      v.appendChild(said);
+    }
+    card.appendChild(v);
+    if (q.kind === "single") card.appendChild(readingList(q.char));
+    else {
+      const list = el("div", "readings");
+      for (const ch of q.word){
+        const s = el("span");
+        s.appendChild(el("i", null, GRADE_LABEL[gradeOf(ch)] || "中学以上"));
+        s.appendChild(el("b", null, ch));
+        list.appendChild(s);
+      }
+      card.appendChild(list);
+    }
+    const next = el("button", "primary", state.at === state.queue.length-1 ? "結果をみる" : "つぎへ");
+    next.id = "next";
+    next.onclick = advance;
+    const row = el("div", "actions"); row.appendChild(next);
+    card.appendChild(row);
+    setTimeout(() => next.focus(), 0);
+  }
+  return card;
+}
+
+function answer(value){
+  if (state.answered !== null) return;
+  const q = state.queue[state.at];
+  const v = normalize(value);
+  if (!v) return;
+  const ok = q.accept.some(a => normalize(a) === v);
+  state.answered = String(value).trim();
+  state.results[state.at] = ok;
+  render();
+}
+function advance(){
+  state.at++; state.answered = null;
+  render();
+}
+
+function resultCard(){
+  const card = el("div", "card");
+  const ok = state.results.filter(Boolean).length;
+  const score = el("div", "score");
+  const b = el("b", null, ok + "/" + state.queue.length);
+  score.appendChild(b);
+  score.appendChild(el("span", null, GRADE_LABEL[state.grade] + "の漢字　"
+    + (state.mode === "sentence" ? "短文の読み" : "漢字ひとつ")
+    + (ok === state.queue.length ? "　全問正解！" : "")));
+  card.appendChild(score);
+
+  const missed = state.queue.map((q, i) => [q, i]).filter(([q, i]) => state.results[i] === false);
+  if (missed.length){
+    const ul = el("ul", "missed");
+    missed.forEach(([q]) => {
+      const li = document.createElement("li");
+      li.appendChild(el("div", "w", q.word));
+      li.appendChild(el("div", "r", q.answer));
+      li.appendChild(el("div", "c", q.kind === "sentence"
+        ? SENT[q.si].segs.map(s => s.k || s.kana).join("")
+        : (K[q.char].on.length ? "音 " + K[q.char].on.slice(0,2).join("・") + "　" : "")
+          + (K[q.char].kun.length ? "訓 " + K[q.char].kun.slice(0,3).map(k => k.replace(".","")).join("・") : "")));
+      ul.appendChild(li);
+    });
+    card.appendChild(ul);
+  }
+  const actions = el("div", "actions");
+  const again = el("button", "primary", "もう一度（新しい10問）");
+  again.onclick = newQuiz;
+  actions.appendChild(again);
+  if (missed.length){
+    const rev = el("button", "ghost", "まちがえた " + missed.length + " 問だけ");
+    rev.onclick = () => {
+      state.queue = missed.map(([q]) => q);
+      state.at = 0; state.results = []; state.answered = null;
+      render();
+    };
+    actions.appendChild(rev);
+  }
+  const back = el("button", "ghost", "設定にもどる");
+  back.onclick = () => { state.phase = "setup"; render(); };
+  actions.appendChild(back);
+  card.appendChild(actions);
+  setTimeout(() => again.focus(), 0);
+  return card;
+}
+
+document.addEventListener("keydown", e => {
+  if (e.target && e.target.tagName === "INPUT") return;
+  if (state.answered === null && state.input === "choice" && /^[1-4]$/.test(e.key)){
+    const q = state.queue[state.at];
+    if (q && q.choices[+e.key-1] != null){ e.preventDefault(); answer(q.choices[+e.key-1]); }
+  }else if (state.answered !== null && (e.key === "Enter" || e.key === " ")){
+    const n = document.getElementById("next");
+    if (n){ e.preventDefault(); advance(); }
+  }
+});
+
+const vv = window.visualViewport;
+if (vv){
+  const onVV = () => {
+    const shrunk = (window.innerHeight - vv.height) > 120;
+    document.documentElement.classList.toggle("kb", shrunk);
+  };
+  vv.addEventListener("resize", onVV);
+  vv.addEventListener("scroll", onVV);
+}
+
+applyTheme();
+render();
+})();
+</script>
+
+</body>
+</html>

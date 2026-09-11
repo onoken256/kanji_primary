@@ -17,7 +17,12 @@
 
 ## 使い方
 
-`dist/app.html`（または `dist/preview.html`）をブラウザで開くだけで動きます。
+公開ページ： **https://onoken256.github.io/kanji_primary/**
+
+ローカルで動かす場合は `index.html` をブラウザで開くだけです（サーバー不要）。
+
+- `index.html` … 単体で完結するHTML。GitHub Pages が配信するのはこれ
+- `dist/app.html` … Artifact など、`<html>` を外側で用意するホストに貼る用の断片
 
 ## 収録データ
 
@@ -77,7 +82,9 @@ verify2.py        送り仮名の検査
 data/s1〜s6.txt   短文のソース（ルビ付き）
 data.js           生成物：漢字1026字の学年・音訓 ＋ 短文390本
 src/app.html      アプリ本体（__KANJI_DATA__ に data.js が埋め込まれる）
-dist/app.html     生成物：配布用の1ファイルHTML
+dist/app.html     生成物：Artifact 用の断片HTML
+index.html        生成物：単体で完結するHTML（GitHub Pages はこれを配信）
+.nojekyll         Pages で Jekyll の処理を無効にする
 ```
 
 ## 出典とライセンス
